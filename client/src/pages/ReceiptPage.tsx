@@ -1,5 +1,6 @@
 import { Banknote, Camera, ChevronRight, Images, RotateCcw, ScanLine, Users } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
@@ -9,12 +10,14 @@ import { Tag } from '../components/ui/Tag';
 import { useNav } from '../context/NavContext';
 import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
+import { isCameraSupported } from '../utils/camera';
 
 export function ReceiptPage() {
   const { push } = useNav();
   const { status, errorMessage, submit, reset } = useVerifyFlow();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const cameraInput = useRef<HTMLInputElement>(null);
   const albumInput = useRef<HTMLInputElement>(null);
   const loading = status === 'loading';
@@ -26,10 +29,7 @@ export function ReceiptPage() {
     [previewUrl],
   );
 
-  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
+  const acceptFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       setPickError('이미지 파일만 선택할 수 있어요.');
       return;
@@ -41,6 +41,23 @@ export function ReceiptPage() {
     setPickError(null);
     reset();
     setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (file) acceptFile(file);
+  };
+
+  // getUserMedia를 못 쓰는 환경(http 접속 등)에서는 기기 기본 카메라 앱으로 대체한다
+  const handleCameraOpen = () => {
+    if (isCameraSupported()) setCameraOpen(true);
+    else cameraInput.current?.click();
+  };
+
+  const handleCameraCapture = (file: File) => {
+    setCameraOpen(false);
+    acceptFile(file);
   };
 
   const handleRetake = () => {
@@ -122,7 +139,7 @@ export function ReceiptPage() {
           </div>
         ) : (
           <div className="btn-pair">
-            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={() => cameraInput.current?.click()}>
+            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={handleCameraOpen}>
               촬영하기
             </Button>
             <Button variant="line" icon={<Images size={18} aria-hidden="true" />} onClick={() => albumInput.current?.click()}>
@@ -155,6 +172,8 @@ export function ReceiptPage() {
           </Card>
         ))}
       </section>
+
+      {cameraOpen ? <CameraCapture onCapture={handleCameraCapture} onClose={() => setCameraOpen(false)} /> : null}
     </div>
   );
 }

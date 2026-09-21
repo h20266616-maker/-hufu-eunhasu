@@ -375,6 +375,113 @@
   font-weight: 600;
 }
 
+/* ---------- 카메라 촬영 ---------- */
+.camera {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+}
+
+.camera__view {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.camera__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera__video--mirror {
+  transform: scaleX(-1);
+}
+
+.camera__guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.camera__guide-box {
+  width: 55%;
+  height: 75%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+}
+
+.camera__error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.78);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.camera__close {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+}
+
+.camera__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  background: #000;
+}
+
+.camera__side {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+}
+
+.camera__switch {
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+}
+
+.camera__shutter {
+  width: 72px;
+  height: 72px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.camera__shutter:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ---------- 안내 박스 ---------- */
 .notice {
   display: flex;
