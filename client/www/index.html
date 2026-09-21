@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>화천 지역상생 영수증</title>
+<style>
+:root{
+  --bg:#f5f7f9; --card:#fff; --ink:#15202b; --sub:#6b7a88;
+  --brand:#ff7d01; --brand2:#ffa84d; --line:#e3e8ec; --warn:#fff3e6;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme:dark){
+    --bg:#10161b; --card:#1a2229; --ink:#eaf0f4; --sub:#93a3af; --line:#2a343c; --warn:#222c34;
+  }
+}
+:root[data-theme="dark"]{--bg:#10161b;--card:#1a2229;--ink:#eaf0f4;--sub:#93a3af;--line:#2a343c;--warn:#222c34;}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent}
+#app{max-width:430px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--bg)}
+.scr{display:none;flex:1;flex-direction:column;padding:20px 18px 28px}
+.scr.on{display:flex}
+h1{font-size:26px;line-height:1.35;margin:0 0 10px}
+h2{font-size:19px;margin:0 0 14px}
+p.sub{color:var(--sub);font-size:14px;margin:0 0 20px;line-height:1.6}
+.btn{display:block;width:100%;border:0;border-radius:14px;background:var(--brand);color:#fff;
+  font-size:17px;font-weight:700;padding:17px;margin-top:10px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;color:var(--sub);font-weight:600;font-size:15px;padding:12px}
+.btn.line{background:var(--card);color:var(--brand);border:1.5px solid var(--brand)}
+input{width:100%;padding:16px;font-size:17px;border:1.5px solid var(--line);border-radius:12px;
+  background:var(--card);color:var(--ink);margin-bottom:12px;font-family:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.top{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:18px;padding:20px;margin-bottom:16px}
+.top .amt{font-size:32px;font-weight:800;margin:4px 0}
+.top .tier{font-size:13px;opacity:.9}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 14px;
+  text-align:center;cursor:pointer;font-size:15px;font-weight:700}
+.tile .ico{font-size:26px;display:block;margin-bottom:6px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tag{font-size:12px;font-weight:700;color:var(--brand);background:var(--warn);padding:4px 9px;border-radius:99px}
+.sm{font-size:13px;color:var(--sub)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar>i{display:block;height:100%;background:var(--brand2)}
+.hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.back{background:none;border:0;font-size:22px;color:var(--ink);cursor:pointer;padding:0 4px}
+.cam{background:#20282e;border-radius:16px;height:280px;display:flex;align-items:center;justify-content:center;
+  color:#8b9aa5;font-size:14px;margin-bottom:14px;text-align:center;padding:20px;border:2px dashed #3a464f;
+  position:relative;overflow:hidden}
+.cam video,.cam img{width:100%;height:100%;object-fit:cover;border-radius:14px;position:absolute;top:0;left:0}
+.cam .shot{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:62px;height:62px;
+  border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.45);cursor:pointer;z-index:2}
+.cam .msg{position:relative;z-index:1}
+.map{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;height:300px;overflow:hidden;margin-bottom:12px}
+.map svg{width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);font-size:22px;cursor:pointer;line-height:1}
+.chips{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--sub);border-radius:99px;
+  padding:9px 15px;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;font-family:inherit}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.big{font-size:40px;font-weight:800;color:var(--brand2);text-align:center;margin:18px 0 6px}
+.mid{text-align:center;color:var(--sub);font-size:15px;margin-bottom:22px}
+.spacer{flex:1}
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:13px 20px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 1 랜딩 -->
+<section class="scr on" id="s-land">
+  <div class="spacer"></div>
+  <div style="font-size:52px">🧾</div>
+  <h1>화천에서 쓴 영수증,<br>다시 돌려받으세요</h1>
+  <p class="sub">인증할수록 캐시백이 올라가고,<br>쌓인 캐시로 화천 특산물을 주문할 수 있어요.</p>
+  <div class="spacer"></div>
+  <button class="btn" onclick="go('s-login')">시작하기</button>
+  <p class="sm" style="text-align:center;margin-top:14px">화천군 · 타운마이스 지역상생 영수증</p>
+</section>
+
+<!-- 2 로그인 -->
+<section class="scr" id="s-login">
+  <div class="hdr"><button class="back" onclick="go('s-land')">←</button><h2 style="margin:0">간편 시작</h2></div>
+  <p class="sub">이름과 전화번호만 입력하면 됩니다.<br>가입 절차도, 앱 설치도 없습니다.</p>
+  <input id="nm" placeholder="이름" value="김화천">
+  <input id="ph" placeholder="전화번호" inputmode="numeric" value="010-0000-0000">
+  <div class="spacer"></div>
+  <button class="btn" onclick="go('s-home')">확인</button>
+</section>
+
+<!-- 3 홈 -->
+<section class="scr" id="s-home">
+  <div class="top">
+    <div class="tier">내 캐시</div>
+    <div class="amt"><span id="cash">0</span>원</div>
+    <div class="tier"><span id="cnt">0</span>번 인증 · 현재 <b><span id="rate">10</span>%</b> 캐시백</div>
+    <div class="bar"><i id="prog" style="width:0%"></i></div>
+    <div class="tier" style="margin-top:7px" id="next">1번 더 인증하면 15%로 올라가요</div>
+  </div>
+  <div class="grid">
+    <div class="tile" onclick="go('s-cam')"><span class="ico">📷</span>영수증 인증</div>
+    <div class="tile" onclick="go('s-map')"><span class="ico">🗺️</span>화천 지도</div>
+    <div class="tile" onclick="go('s-bike')"><span class="ico">🚲</span>자전거 빌리기</div>
+    <div class="tile" onclick="go('s-shop')"><span class="ico">🎁</span>특산물 상점</div>
+  </div>
+  <h2>진행 중인 미션</h2>
+  <div class="card row"><div><b>붕어섬 방문하기</b><div class="sm">체크인하면 3,000원 즉시 지급</div></div><span class="tag">+3,000</span></div>
+  <div class="card row"><div><b>2인 이상 함께 방문</b><div class="sm">일행 인증 시 캐시백 5%p 추가</div></div><span class="tag">+5%p</span></div>
+  <div class="card row"><div><b>1박 더 머무르기</b><div class="sm">숙박 영수증 2장부터 20% 적용</div></div><span class="tag">+10%p</span></div>
+</section>
+
+<!-- 4 촬영 -->
+<section class="scr" id="s-cam">
+  <div class="hdr"><button class="back" onclick="go('s-home')">←</button><h2 style="margin:0">영수증 인증</h2></div>
+  <div class="cam" id="camBox">
+    <div class="msg" id="camMsg">카메라를 켜서 영수증을 촬영하세요</div>
+    <video id="camVideo" autoplay playsinline muted style="display:none"></video>
+    <div class="shot" id="shotBtn" style="display:none" onclick="capture()"></div>
+  </div>
+  <button class="btn" id="camBtn" onclick="startCam()">📷 카메라 켜기</button>
+  <button class="btn line" onclick="go('s-cashq')">현금만 받는 가게인가요?</button>
+  <div class="spacer"></div>
+  <p class="sm">식비·체험·숙박·특산물 영수증 모두 인증할 수 있어요.</p>
+</section>
+
+<!-- 4b 현금 QR -->
+<section class="scr" id="s-cashq">
+  <div class="hdr"><button class="back" onclick="go('s-cam')">←</button><h2 style="margin:0">현금 결제 인증</h2></div>
+  <p class="sub">가게에 비치된 QR을 찍고 결제 금액을 입력하면,<br>사장님이 확인 버튼을 눌러 인증됩니다.</p>
+  <div class="card"><b>화천중앙시장 · 옛골식당</b><div class="sm">QR 스캔 완료</div></div>
+  <input id="camt" placeholder="결제 금액" inputmode="numeric" value="18000">
+  <div class="spacer"></div>
+  <button class="btn" onclick="cashOk()">사장님께 확인 요청</button>
+</section>
+
+<!-- 5 인식 확인 -->
+<section class="scr" id="s-check">
+  <div class="hdr"><button class="back" onclick="go('s-cam')">←</button><h2 style="margin:0">내용 확인</h2></div>
+  <p class="sub">잘못 인식된 항목은 눌러서 고칠 수 있어요.</p>
+  <img id="shotPreview" style="width:100%;border-radius:14px;margin-bottom:14px;display:none">
+  <div class="card"><div class="sm">상호</div><input id="shop" value="화천산천어막국수"></div>
+  <div class="card"><div class="sm">금액</div><input id="amt" inputmode="numeric" value="24000"></div>
+  <div class="card row"><div><div class="sm">분류</div><b id="cat">식비</b></div><span class="tag" id="catRate">% 캐시백</span></div>
+  <div class="spacer"></div>
+  <button class="btn" onclick="confirmR()">이 내용으로 인증</button>
+</section>
+
+<!-- 6 적립 결과 -->
+<section class="scr" id="s-done">
+  <div class="spacer"></div>
+  <div style="text-align:center;font-size:52px">🎉</div>
+  <div class="big" id="earn">+0원</div>
+  <div class="mid" id="earnSub">캐시가 적립되었습니다</div>
+  <div class="card row"><div><b>다음 인증부터</b><div class="sm" id="nextMsg">캐시백이 올라갑니다</div></div><span class="tag" id="nextRate">15%</span></div>
+  <div class="card row"><div><b>내 캐시</b><div class="sm">특산물 상점에서 바로 사용 가능</div></div><span class="tag"><span id="cash2">0</span>원</span></div>
+  <div class="spacer"></div>
+  <button class="btn" onclick="go('s-shop')">캐시 쓰러 가기</button>
+  <button class="btn ghost" onclick="go('s-home')">홈으로</button>
+</section>
+
+<!-- 7 지도 -->
+<section class="scr" id="s-map">
+  <div class="hdr"><button class="back" onclick="go('s-home')">←</button><h2 style="margin:0">화천 지도</h2></div>
+  <div class="chips">
+    <button class="chip on" onclick="filt(this,'all')">전체</button>
+    <button class="chip" onclick="filt(this,'eat')">먹을 곳</button>
+    <button class="chip" onclick="filt(this,'see')">볼 곳</button>
+    <button class="chip" onclick="filt(this,'bike')">자전거</button>
+  </div>
+  <div class="map" id="mapBox">
+    <svg viewBox="0 0 300 300" preserveAspectRatio="none">
+      <rect width="300" height="300" fill="none"/>
+      <path d="M0 150 Q90 120 150 165 T300 150" stroke="#8fc6e8" stroke-width="16" fill="none" opacity=".55"/>
+      <path d="M30 0 L120 300" stroke="#cfd8de" stroke-width="7" fill="none"/>
+      <path d="M0 210 L300 190" stroke="#cfd8de" stroke-width="7" fill="none"/>
+    </svg>
+  </div>
+  <div id="place" class="card"><b>핀을 눌러보세요</b><div class="sm">카드 결제가 되는 제휴 매장을 먼저 보여줍니다.</div></div>
+</section>
+
+<!-- 8 자전거 -->
+<section class="scr" id="s-bike">
+  <div class="hdr"><button class="back" onclick="go('s-home')">←</button><h2 style="margin:0">자전거 빌리기</h2></div>
+  <p class="sub">차 없이도 화천 안을 돌아다닐 수 있게,<br>대여소 어디서든 빌리고 아무 데나 반납하세요.</p>
+  <div id="bikeList">
+    <div class="card row" onclick="rent('화천버스터미널')"><div><b>화천버스터미널</b><div class="sm">남은 자전거 6대 · 도보 1분</div></div><span class="tag">대여</span></div>
+    <div class="card row" onclick="rent('화천중앙시장')"><div><b>화천중앙시장</b><div class="sm">남은 자전거 4대 · 1.2km</div></div><span class="tag">대여</span></div>
+    <div class="card row" onclick="rent('붕어섬 입구')"><div><b>붕어섬 입구</b><div class="sm">남은 자전거 9대 · 2.4km</div></div><span class="tag">대여</span></div>
+  </div>
+  <div id="riding" style="display:none">
+    <div class="top"><div class="tier">이용 중</div><div class="amt" id="rideT">00:00</div><div class="tier" id="rideAt">—</div></div>
+    <div class="card"><b>가까운 반납 스팟</b><div class="sm">붕어섬 입구 · 화천중앙시장 · 터미널</div></div>
+    <button class="btn" onclick="ret()">반납하기</button>
+  </div>
+</section>
+
+<!-- 9 상점 -->
+<section class="scr" id="s-shop">
+  <div class="hdr"><button class="back" onclick="go('s-home')">←</button><h2 style="margin:0">특산물 상점</h2></div>
+  <div class="card row"><div><b>사용 가능한 캐시</b><div class="sm">화천에 다시 오지 않아도 쓸 수 있어요</div></div><span class="tag"><span id="cash3">0</span>원</span></div>
+  <div class="card row" onclick="buy('화천 토마토 5kg',18000)"><div><b>화천 토마토 5kg</b><div class="sm">파로호 인근 농가 직송</div></div><span class="tag">18,000원</span></div>
+  <div class="card row" onclick="buy('산천어 훈제 세트',25000)"><div><b>산천어 훈제 세트</b><div class="sm">축제 기간 인기 상품</div></div><span class="tag">25,000원</span></div>
+  <div class="card row" onclick="buy('화천 사과즙 30포',21000)"><div><b>화천 사과즙 30포</b><div class="sm">당도 선별 등급</div></div><span class="tag">21,000원</span></div>
+  <div class="spacer"></div>
+  <p class="sm">상품권 대신 캐시로 돌려드립니다. 화천 농가의 온라인 판로가 함께 열립니다.</p>
+</section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var S={cash:0,cnt:0,rate:10},T=null,sec=0;
+var PINS=[
+ {x:30,y:35,i:'🍜',t:'eat',n:'화천산천어막국수',d:'식비 영수증 인증 시 20% 캐시백'},
+ {x:63,y:28,i:'🍲',t:'eat',n:'중앙시장 옛골식당',d:'현금 가게 · QR 인증 가능'},
+ {x:48,y:60,i:'🐟',t:'see',n:'붕어섬',d:'체크인 미션 +3,000원'},
+ {x:78,y:66,i:'🏞️',t:'see',n:'화천 평화의 댐',d:'입장권은 쿠폰으로 지급'},
+ {x:20,y:72,i:'🚲',t:'bike',n:'화천버스터미널 대여소',d:'남은 자전거 6대'},
+ {x:68,y:46,i:'🚲',t:'bike',n:'중앙시장 대여소',d:'남은 자전거 4대'}
+];
+function go(id){if(camStream&&id!=='s-cam')stopCam();
+  document.querySelectorAll('.scr').forEach(function(e){e.classList.remove('on')});
+  document.getElementById(id).classList.add('on');window.scrollTo(0,0);
+  if(id==='s-map')drawPins('all');}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  setTimeout(function(){t.classList.remove('on')},1600);}
+function num(n){return n.toLocaleString('ko-KR')}
+function sync(){
+  var need=S.cnt<1?1:S.cnt<3?3:S.cnt<5?5:S.cnt;
+  S.rate=S.cnt<1?10:S.cnt<3?15:S.cnt<5?20:30;
+  document.getElementById('cash').textContent=num(S.cash);
+  document.getElementById('cash2').textContent=num(S.cash);
+  document.getElementById('cash3').textContent=num(S.cash);
+  document.getElementById('cnt').textContent=S.cnt;
+  document.getElementById('rate').textContent=S.rate;
+  document.getElementById('prog').style.width=Math.min(100,S.cnt/5*100)+'%';
+  document.getElementById('next').textContent=S.cnt>=5?'최고 등급이에요 · 30% 적용 중'
+    :(need-S.cnt)+'번 더 인증하면 '+(S.cnt<1?15:S.cnt<3?20:30)+'%로 올라가요';
+  try{localStorage.setItem('hc',JSON.stringify(S))}catch(e){}
+}
+var camStream=null;
+function startCam(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    toast('이 브라우저에선 카메라를 지원하지 않아요');scan();return;
+  }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(function(stream){
+      camStream=stream;
+      var v=document.getElementById('camVideo');
+      v.srcObject=stream;v.style.display='block';
+      document.getElementById('camMsg').style.display='none';
+      document.getElementById('shotBtn').style.display='block';
+      document.getElementById('camBtn').style.display='none';
+    })
+    .catch(function(){
+      toast('카메라 권한이 필요해요 · 시연용으로 진행할게요');
+      scan();
+    });
+}
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(function(t){t.stop()});camStream=null}
+  var v=document.getElementById('camVideo');
+  if(v){v.style.display='none';v.srcObject=null}
+  document.getElementById('camMsg').style.display='block';
+  document.getElementById('shotBtn').style.display='none';
+  document.getElementById('camBtn').style.display='block';
+}
+function capture(){
+  var v=document.getElementById('camVideo');
+  var c=document.createElement('canvas');
+  c.width=v.videoWidth||300;c.height=v.videoHeight||300;
+  c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+  var dataUrl=c.toDataURL('image/jpeg',0.85);
+  stopCam();
+  toast('영수증을 읽는 중…');
+  setTimeout(function(){
+    var img=document.getElementById('shotPreview');
+    img.src=dataUrl;img.style.display='block';
+    go('s-check');
+  },700);
+}
+function scan(){toast('영수증을 읽는 중…');setTimeout(function(){
+  document.getElementById('shotPreview').style.display='none';
+  go('s-check')},900)}
+function cashOk(){toast('사장님이 확인했습니다');
+  document.getElementById('shop').value='중앙시장 옛골식당';
+  document.getElementById('amt').value=document.getElementById('camt').value||18000;
+  setTimeout(function(){go('s-check')},900)}
+function confirmR(){
+  var a=parseInt((document.getElementById('amt').value||'0').replace(/\D/g,''))||0;
+  var e=Math.round(a*S.rate/100);
+  S.cash+=e;S.cnt++;sync();
+  document.getElementById('earn').textContent='+'+num(e)+'원';
+  document.getElementById('earnSub').textContent=document.getElementById('shop').value+' · '+num(a)+'원의 '+
+    (S.cnt<=1?10:S.cnt<=3?15:S.cnt<=5?20:30)+'%';
+  document.getElementById('nextRate').textContent=S.rate+'%';
+  document.getElementById('nextMsg').textContent=S.cnt>=5?'최고 등급 적용 중':'인증 '+S.cnt+'회 달성으로 비율이 올랐어요';
+  go('s-done');
+}
+function drawPins(f){
+  var b=document.getElementById('mapBox');
+  b.querySelectorAll('.pin').forEach(function(e){e.remove()});
+  PINS.filter(function(p){return f==='all'||p.t===f}).forEach(function(p){
+    var d=document.createElement('div');d.className='pin';d.textContent=p.i;
+    d.style.left=p.x+'%';d.style.top=p.y+'%';
+    d.onclick=function(){document.getElementById('place').innerHTML='<b>'+p.n+'</b><div class="sm">'+p.d+'</div>'};
+    b.appendChild(d);
+  });
+}
+function filt(el,f){document.querySelectorAll('#s-map .chip').forEach(function(c){c.classList.remove('on')});
+  el.classList.add('on');drawPins(f)}
+function rent(n){document.getElementById('bikeList').style.display='none';
+  document.getElementById('riding').style.display='block';
+  document.getElementById('rideAt').textContent=n+'에서 대여함';sec=0;
+  T=setInterval(function(){sec++;var m=String(Math.floor(sec/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');
+    document.getElementById('rideT').textContent=m+':'+s},1000);
+  toast('자전거 잠금이 해제되었습니다')}
+function ret(){clearInterval(T);document.getElementById('bikeList').style.display='block';
+  document.getElementById('riding').style.display='none';toast('반납 완료 · 이용료 무료')}
+function buy(n,p){if(S.cash<p){toast('캐시가 '+num(p-S.cash)+'원 부족해요');return}
+  S.cash-=p;sync();toast(n+' 주문 완료')}
+try{var v=localStorage.getItem('hc');if(v)S=JSON.parse(v)}catch(e){}
+sync();
+</script>
+</body>
+</html>

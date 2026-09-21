@@ -1,0 +1,19 @@
+{
+  "name": "hwacheon-receipt",
+  "version": "1.0.0",
+  "description": "화천 지역상생 영수증",
+  "scripts": {
+    "sync": "cap sync android",
+    "open": "cap open android"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  },
+  "private": true
+}

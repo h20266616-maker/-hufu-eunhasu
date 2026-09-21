@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">화천 지역상생 영수증</string>
+    <string name="title_activity_main">화천 지역상생 영수증</string>
+    <string name="package_name">kr.go.hwacheon.receipt</string>
+    <string name="custom_url_scheme">kr.go.hwacheon.receipt</string>
+</resources>
