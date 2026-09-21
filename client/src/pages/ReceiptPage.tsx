@@ -1,0 +1,160 @@
+import { Banknote, Camera, ChevronRight, Images, RotateCcw, ScanLine, Users } from 'lucide-react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { CashbackSummary } from '../components/CashbackSummary';
+import { ReceiptPaper } from '../components/ReceiptPaper';
+import { Button } from '../components/ui/Button';
+import { Card, CardButton } from '../components/ui/Card';
+import { ErrorState } from '../components/ui/StateMessage';
+import { Tag } from '../components/ui/Tag';
+import { useNav } from '../context/NavContext';
+import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
+import { useVerifyFlow } from '../hooks/useVerifyFlow';
+
+export function ReceiptPage() {
+  const { push } = useNav();
+  const { status, errorMessage, submit, reset } = useVerifyFlow();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [pickError, setPickError] = useState<string | null>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const albumInput = useRef<HTMLInputElement>(null);
+  const loading = status === 'loading';
+
+  useEffect(
+    () => () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    },
+    [previewUrl],
+  );
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setPickError('이미지 파일만 선택할 수 있어요.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setPickError('사진 용량이 너무 커요. 15MB 이하 사진을 선택해 주세요.');
+      return;
+    }
+    setPickError(null);
+    reset();
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRetake = () => {
+    setPreviewUrl(null);
+    setPickError(null);
+    reset();
+  };
+
+  return (
+    <div className="page">
+      <CardButton className="banner" onClick={() => push({ name: 'community' })}>
+        <span className="banner__icon">
+          <Users size={20} aria-hidden="true" />
+        </span>
+        <span className="banner__text">
+          <strong>화천 커뮤니티</strong>
+          <span className="sm">자전거 코스 후기부터 가게 소식까지</span>
+        </span>
+        <ChevronRight size={20} aria-hidden="true" />
+      </CardButton>
+
+      <CashbackSummary />
+
+      <section aria-labelledby="verify-title">
+        <h2 id="verify-title" className="section-title">
+          영수증 인증
+        </h2>
+        <p className="sub">
+          {previewUrl ? '내용이 잘 보이는지 확인하고 인증해 주세요.' : '영수증을 촬영하거나 앨범에서 가져오세요.'}
+        </p>
+
+        <ReceiptPaper imageUrl={previewUrl} loading={loading} />
+
+        {pickError ? <ErrorState title="사진을 사용할 수 없어요" description={pickError} /> : null}
+        {status === 'error' && errorMessage ? (
+          <ErrorState
+            title="인증에 실패했어요"
+            description={errorMessage}
+            action={
+              <Button variant="line" onClick={() => void submit({ source: 'photo' })}>
+                다시 시도
+              </Button>
+            }
+          />
+        ) : null}
+
+        <input
+          ref={cameraInput}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="visually-hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={handleFile}
+        />
+        <input
+          ref={albumInput}
+          type="file"
+          accept="image/*"
+          className="visually-hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={handleFile}
+        />
+
+        {previewUrl ? (
+          <div className="btn-pair">
+            <Button variant="line" icon={<RotateCcw size={18} aria-hidden="true" />} onClick={handleRetake} disabled={loading}>
+              다시 선택
+            </Button>
+            <Button
+              icon={<ScanLine size={18} aria-hidden="true" />}
+              onClick={() => void submit({ source: 'photo' })}
+              disabled={loading}
+            >
+              {loading ? '인증 중…' : '인증하기'}
+            </Button>
+          </div>
+        ) : (
+          <div className="btn-pair">
+            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={() => cameraInput.current?.click()}>
+              촬영하기
+            </Button>
+            <Button variant="line" icon={<Images size={18} aria-hidden="true" />} onClick={() => albumInput.current?.click()}>
+              앨범에서 가져오기
+            </Button>
+          </div>
+        )}
+
+        <Button
+          variant="ghost"
+          icon={<Banknote size={18} aria-hidden="true" />}
+          onClick={() => push({ name: 'cashQr' })}
+          disabled={loading}
+        >
+          현금만 받는 가게인가요?
+        </Button>
+      </section>
+
+      <section aria-labelledby="mission-title">
+        <h2 id="mission-title" className="section-title">
+          진행 중인 미션
+        </h2>
+        {MISSIONS.map((mission) => (
+          <Card key={mission.id} className="row">
+            <div>
+              <strong>{mission.title}</strong>
+              <div className="sm">{mission.description}</div>
+            </div>
+            <Tag>{mission.badge}</Tag>
+          </Card>
+        ))}
+      </section>
+    </div>
+  );
+}

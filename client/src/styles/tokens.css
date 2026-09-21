@@ -1,0 +1,45 @@
+:root {
+  /* 기존 프로토타입 토큰 (발표자료 타운마이스 컬러) */
+  --bg: #f5f7f9;
+  --card: #fff;
+  --ink: #15202b;
+  --sub: #6b7a88;
+  --brand: #ff7d01;
+  --brand2: #ffa84d;
+  --line: #e3e8ec;
+  --warn: #fff3e6;
+
+  /* 주황 배경 위 글자색. 라이트 테마의 --ink 값을 고정해 다크모드에서도 명도 대비를 유지한다 */
+  --on-brand: #15202b;
+  /* --sub 를 --ink 쪽으로 살짝 당겨 작은 글자의 명도 대비를 확보한다 */
+  --sub-strong: var(--sub);
+
+  --tabbar-h: 60px;
+  --frame-w: 390px;
+}
+
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  :root {
+    --sub-strong: color-mix(in srgb, var(--sub) 78%, var(--ink));
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #10161b;
+    --card: #1a2229;
+    --ink: #eaf0f4;
+    --sub: #93a3af;
+    --line: #2a343c;
+    --warn: #222c34;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #10161b;
+  --card: #1a2229;
+  --ink: #eaf0f4;
+  --sub: #93a3af;
+  --line: #2a343c;
+  --warn: #222c34;
+}

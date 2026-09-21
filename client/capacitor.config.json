@@ -1,5 +1,5 @@
 {
   "appId": "kr.go.hwacheon.receipt",
   "appName": "화천 지역상생 영수증",
-  "webDir": "www"
+  "webDir": "dist"
 }
