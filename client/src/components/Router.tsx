@@ -13,6 +13,7 @@ import { PostWritePage } from '../pages/PostWritePage';
 import { ReceiptHistoryPage } from '../pages/ReceiptHistoryPage';
 import { ReceiptPage } from '../pages/ReceiptPage';
 import { ShopPage } from '../pages/ShopPage';
+import { SoldierVerifyPage } from '../pages/SoldierVerifyPage';
 import { StampPage } from '../pages/StampPage';
 import { VerifyResultPage } from '../pages/VerifyResultPage';
 import type { Route } from '../types';
@@ -39,6 +40,8 @@ export function Router({ route }: { route: Route }): ReactElement {
       return <MyPage />;
     case 'personalInfo':
       return <PersonalInfoPage />;
+    case 'soldierVerify':
+      return <SoldierVerifyPage />;
     case 'receiptHistory':
       return <ReceiptHistoryPage />;
     case 'notifications':

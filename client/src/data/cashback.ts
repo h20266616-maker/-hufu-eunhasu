@@ -21,3 +21,6 @@ export const MAX_RECEIPT_AMOUNT = 1_000_000;
 export const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 
 export const VERIFY_LATENCY_MS = { min: 1200, max: 1900 };
+
+/** 군인 인증 회원의 캐시백 배율. 값만 바꾸면 전체 계산에 반영돼요 */
+export const SOLDIER_CASHBACK_MULTIPLIER = 1.5;

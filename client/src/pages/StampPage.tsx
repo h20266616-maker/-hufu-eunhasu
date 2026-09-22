@@ -1,9 +1,10 @@
-import { Stamp } from 'lucide-react';
+import { LogIn, Stamp } from 'lucide-react';
 import { useEffect } from 'react';
 import { RewardCard } from '../components/RewardCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StampSlot } from '../components/StampSlot';
 import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { EmptyState } from '../components/ui/StateMessage';
 import { useApp } from '../context/AppContext';
@@ -15,19 +16,22 @@ import { formatWon } from '../utils/format';
 const FRESH_STAMP_VISIBLE_MS = 1600;
 
 export function StampPage() {
-  const { stamps, freshStampId, clearFreshStamp, claimedRewards, claimReward } = useApp();
-  const { switchTab } = useNav();
+  const { uid, profile, stamps, freshStampId, clearFreshStamp, claimedRewards, claimReward } = useApp();
+  const { push, switchTab } = useNav();
   const showToast = useToast();
   const total = STAMP_SPOTS.length;
+  const loggedIn = uid !== null;
+  const visibleRewards = STAMP_REWARDS.filter((reward) => !reward.soldierOnly || profile.soldierVerified);
 
   useEffect(() => {
     const timer = window.setTimeout(clearFreshStamp, FRESH_STAMP_VISIBLE_MS);
     return () => window.clearTimeout(timer);
   }, [clearFreshStamp]);
 
-  const handleClaim = (rewardId: string) => {
+  const handleClaim = async (rewardId: string) => {
     const reward = STAMP_REWARDS.find((item) => item.id === rewardId);
-    if (!reward || !claimReward(rewardId)) {
+    const claimed = reward ? await claimReward(rewardId) : false;
+    if (!reward || !claimed) {
       showToast('아직 받을 수 없는 보상이에요');
       return;
     }
@@ -37,6 +41,18 @@ export function StampPage() {
   return (
     <div className="page">
       <ScreenHeader title="스탬프북" showBack={false} />
+
+      {loggedIn ? null : (
+        <Card className="row">
+          <div>
+            <strong>로그인하고 스탬프를 모아보세요</strong>
+            <div className="sm">모은 스탬프는 계정에 안전하게 저장돼요</div>
+          </div>
+          <Button className="btn--small" icon={<LogIn size={16} aria-hidden="true" />} onClick={() => push({ name: 'login' })}>
+            로그인
+          </Button>
+        </Card>
+      )}
 
       <section className="stamp-progress" aria-label="스탬프 진행률">
         <div className="row">
@@ -48,7 +64,7 @@ export function StampPage() {
         <ProgressBar value={stamps.length} max={total} label="스탬프 수집 진행률" />
       </section>
 
-      {stamps.length === 0 ? (
+      {loggedIn && stamps.length === 0 ? (
         <EmptyState
           icon={Stamp}
           title="아직 찍은 스탬프가 없어요"
@@ -72,13 +88,13 @@ export function StampPage() {
         <h2 id="reward-title" className="section-title">
           달성 보상
         </h2>
-        {STAMP_REWARDS.map((reward) => (
+        {visibleRewards.map((reward) => (
           <RewardCard
             key={reward.id}
             reward={reward}
             stampCount={stamps.length}
             claimed={claimedRewards.includes(reward.id)}
-            onClaim={handleClaim}
+            onClaim={(id) => void handleClaim(id)}
           />
         ))}
       </section>

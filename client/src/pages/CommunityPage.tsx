@@ -1,4 +1,4 @@
-import { Lock, MessageSquare, PenLine } from 'lucide-react';
+import { Lock, LogIn, MessageSquare, PenLine } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PostCard } from '../components/PostCard';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -20,12 +20,14 @@ const BOARD_OPTIONS: readonly { value: Board; label: string }[] = [
 ];
 
 export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
-  const { posts, profile } = useApp();
+  const { uid, posts, profile } = useApp();
   const { push, replace } = useNav();
   const showToast = useToast();
   const [category, setCategory] = useState(ALL_CATEGORY);
 
-  const readOnly = board === 'owner' && profile.role !== 'owner';
+  const loggedIn = uid !== null;
+  const ownerLocked = board === 'owner' && profile.role !== 'owner';
+  const readOnly = !loggedIn || ownerLocked;
 
   const visiblePosts = useMemo(
     () =>
@@ -41,7 +43,11 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
   };
 
   const handleWrite = () => {
-    if (readOnly) {
+    if (!loggedIn) {
+      push({ name: 'login' });
+      return;
+    }
+    if (ownerLocked) {
       showToast(OWNER_READONLY_NOTICE);
       return;
     }
@@ -52,13 +58,14 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
     <div className="page">
       <ScreenHeader
         title="커뮤니티"
+        showBack={false}
         right={
           <Button
             variant="line"
             className="btn--small"
             icon={readOnly ? <Lock size={16} aria-hidden="true" /> : <PenLine size={16} aria-hidden="true" />}
             onClick={handleWrite}
-            aria-label={readOnly ? `글쓰기, ${OWNER_READONLY_NOTICE}` : '글쓰기'}
+            aria-label={readOnly ? `글쓰기, 로그인 또는 사장님 인증이 필요해요` : '글쓰기'}
           >
             글쓰기
           </Button>
@@ -67,7 +74,18 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
 
       <SegmentControl options={BOARD_OPTIONS} value={board} onChange={handleBoardChange} ariaLabel="커뮤니티 종류" />
 
-      {readOnly ? (
+      {!loggedIn ? (
+        <div className="notice" role="note">
+          <LogIn size={18} aria-hidden="true" />
+          <div>
+            <strong>로그인하면 글을 남길 수 있어요</strong>
+            <p className="sm">지금은 목록만 읽을 수 있어요.</p>
+            <Button variant="line" className="btn--small" onClick={() => push({ name: 'login' })}>
+              로그인하기
+            </Button>
+          </div>
+        </div>
+      ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />
           <div>

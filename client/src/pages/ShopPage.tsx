@@ -19,9 +19,9 @@ export function ShopPage() {
 
   const shortage = selected ? Math.max(0, selected.price - cash) : 0;
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!selected) return;
-    if (!spendCash(selected.price)) {
+    if (!(await spendCash(selected.price))) {
       showToast(`캐시가 ${formatWon(selected.price - cash)} 부족해요`);
       return;
     }
@@ -31,7 +31,7 @@ export function ShopPage() {
 
   return (
     <div className="page">
-      <ScreenHeader title="특산물 상점" showBack={false} />
+      <ScreenHeader title="특산물 상점" />
       <Card className="row">
         <div>
           <strong>사용 가능한 캐시</strong>
@@ -84,7 +84,7 @@ export function ShopPage() {
               <Button variant="line" onClick={() => setSelected(null)}>
                 취소
               </Button>
-              <Button onClick={handleOrder} disabled={shortage > 0}>
+              <Button onClick={() => void handleOrder()} disabled={shortage > 0}>
                 주문하기
               </Button>
             </div>

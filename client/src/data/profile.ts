@@ -1,6 +1,6 @@
 import type { NotificationKey, NotificationSetting, Profile } from '../types';
 
-/** 실제 개인정보가 아닌 명백한 더미 값 */
+/** 실제 개인정보가 아닌 명백한 더미 값. 로그인 직후 users/{uid} 문서를 만들 때 기본값으로 써요 */
 export const DEFAULT_PROFILE: Profile = {
   nickname: '화천여행자',
   name: '김화천',
@@ -10,6 +10,20 @@ export const DEFAULT_PROFILE: Profile = {
   account: '000-0000-000000',
   role: 'traveler',
   consent: true,
+  soldierVerified: false,
+  soldierUnit: '',
+  soldierDischargeDate: '',
+};
+
+/** 로그아웃 상태에서 화면을 둘러볼 때만 쓰는 값. 저장되지 않아요 */
+export const GUEST_PROFILE: Profile = {
+  ...DEFAULT_PROFILE,
+  nickname: '게스트',
+  name: '',
+  phone: '',
+  email: '',
+  bankName: '',
+  account: '',
 };
 
 export const NOTIFICATION_SETTINGS: readonly NotificationSetting[] = [

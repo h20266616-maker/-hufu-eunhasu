@@ -1,4 +1,4 @@
-import { Heart, Lock, MessageCircle, Send } from 'lucide-react';
+import { Heart, Lock, LogIn, MessageCircle, Send } from 'lucide-react';
 import { useId, useState, type SubmitEvent } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
@@ -8,15 +8,18 @@ import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
 import { OWNER_READONLY_NOTICE } from '../data';
+import { usePostComments } from '../hooks/usePostComments';
 import { formatRelative } from '../utils/format';
 
 const MAX_COMMENT_LENGTH = 200;
 
 export function PostDetailPage({ postId }: { postId: string }) {
-  const { posts, profile, toggleLike, addComment } = useApp();
-  const { back } = useNav();
+  const { uid, posts, profile, toggleLike } = useApp();
+  const { comments, addComment } = usePostComments(postId, uid);
+  const { push, back } = useNav();
   const showToast = useToast();
   const [commentText, setCommentText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const inputId = useId();
 
   const post = posts.find((item) => item.id === postId);
@@ -34,21 +37,29 @@ export function PostDetailPage({ postId }: { postId: string }) {
     );
   }
 
-  const readOnly = post.board === 'owner' && profile.role !== 'owner';
+  const loggedIn = uid !== null;
+  const ownerLocked = post.board === 'owner' && profile.role !== 'owner';
+  const readOnly = !loggedIn || ownerLocked;
 
   const handleLike = () => {
-    if (readOnly) {
+    if (!loggedIn) {
+      push({ name: 'login' });
+      return;
+    }
+    if (ownerLocked) {
       showToast(OWNER_READONLY_NOTICE);
       return;
     }
-    toggleLike(post.id);
+    void toggleLike(post.id);
   };
 
-  const handleComment = (event: SubmitEvent) => {
+  const handleComment = async (event: SubmitEvent) => {
     event.preventDefault();
     const body = commentText.trim();
-    if (body === '') return;
-    addComment(post.id, body, profile.nickname);
+    if (body === '' || readOnly) return;
+    setSubmitting(true);
+    await addComment(body, profile.nickname);
+    setSubmitting(false);
     setCommentText('');
   };
 
@@ -77,13 +88,13 @@ export function PostDetailPage({ postId }: { postId: string }) {
 
       <section aria-labelledby="comments-title">
         <h2 id="comments-title" className="section-title">
-          <MessageCircle size={18} aria-hidden="true" /> 댓글 {post.comments.length}
+          <MessageCircle size={18} aria-hidden="true" /> 댓글 {comments.length}
         </h2>
-        {post.comments.length === 0 ? (
+        {comments.length === 0 ? (
           <p className="sm">아직 댓글이 없어요. 첫 댓글을 남겨보세요.</p>
         ) : (
           <ul className="comment-list">
-            {post.comments.map((comment) => (
+            {comments.map((comment) => (
               <li key={comment.id} className="comment">
                 <div className="sm">
                   <strong>{comment.author}</strong> · {formatRelative(comment.createdAt)}
@@ -95,7 +106,17 @@ export function PostDetailPage({ postId }: { postId: string }) {
         )}
       </section>
 
-      {readOnly ? (
+      {!loggedIn ? (
+        <div className="notice" role="note">
+          <LogIn size={18} aria-hidden="true" />
+          <div>
+            <strong>로그인하면 좋아요와 댓글을 남길 수 있어요</strong>
+            <Button variant="line" className="btn--small" onClick={() => push({ name: 'login' })}>
+              로그인하기
+            </Button>
+          </div>
+        </div>
+      ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />
           <div>
@@ -104,7 +125,7 @@ export function PostDetailPage({ postId }: { postId: string }) {
           </div>
         </div>
       ) : (
-        <form className="comment-form" onSubmit={handleComment}>
+        <form className="comment-form" onSubmit={(event) => void handleComment(event)}>
           <label htmlFor={inputId} className="visually-hidden">
             댓글 입력
           </label>
@@ -115,8 +136,14 @@ export function PostDetailPage({ postId }: { postId: string }) {
             onChange={(event) => setCommentText(event.target.value)}
             placeholder="댓글을 입력하세요"
             maxLength={MAX_COMMENT_LENGTH}
+            disabled={submitting}
           />
-          <button type="submit" className="icon-btn icon-btn--primary" aria-label="댓글 등록" disabled={commentText.trim() === ''}>
+          <button
+            type="submit"
+            className="icon-btn icon-btn--primary"
+            aria-label="댓글 등록"
+            disabled={submitting || commentText.trim() === ''}
+          >
             <Send size={20} aria-hidden="true" />
           </button>
         </form>

@@ -1,57 +1,110 @@
+import { AlertTriangle, Globe } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Field } from '../components/ui/Field';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
 
-const PHONE_PATTERN = /^01[016789]-?\d{3,4}-?\d{4}$/;
+type Mode = 'login' | 'signup';
 
 export function LoginPage() {
-  const { profile, updateProfile } = useApp();
+  const { firebaseReady, signInGoogle, signInEmail, signUpEmail } = useAuth();
   const { reset } = useNav();
-  const [name, setName] = useState(profile.name);
-  const [phone, setPhone] = useState(profile.phone);
-  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [mode, setMode] = useState<Mode>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: SubmitEvent) => {
+  const goHome = () => reset({ name: 'receipt' }, 'receipt');
+
+  const handleGoogle = async () => {
+    setError(null);
+    setLoading(true);
+    const result = await signInGoogle();
+    setLoading(false);
+    if (result.ok) goHome();
+    else setError(result.message);
+  };
+
+  const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
-    const next: { name?: string; phone?: string } = {};
-    if (name.trim().length < 2) next.name = '이름을 2자 이상 입력해 주세요.';
-    if (!PHONE_PATTERN.test(phone.trim())) next.phone = '전화번호 형식을 확인해 주세요. 예) 010-0000-0000';
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-    updateProfile({ name: name.trim(), phone: phone.trim() });
-    reset({ name: 'receipt' }, 'receipt');
+    setError(null);
+    setLoading(true);
+    const result = mode === 'login' ? await signInEmail(email, password) : await signUpEmail(email, password);
+    setLoading(false);
+    if (result.ok) goHome();
+    else setError(result.message);
   };
 
   return (
-    <form className="page" onSubmit={handleSubmit} noValidate>
-      <ScreenHeader title="간편 시작" />
+    <div className="page">
+      <ScreenHeader title="로그인" />
       <p className="sub">
-        이름과 전화번호만 입력하면 됩니다.
+        로그인하면 인증 내역과 스탬프, 캐시가 계정에 안전하게 저장돼요.
         <br />
-        가입 절차도, 앱 설치도 없습니다.
+        홈 화면은 로그인 없이도 둘러볼 수 있어요.
       </p>
-      <Field
-        label="이름"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        error={errors.name}
-        autoComplete="name"
-        placeholder="이름"
-      />
-      <Field
-        label="전화번호"
-        value={phone}
-        onChange={(event) => setPhone(event.target.value)}
-        error={errors.phone}
-        inputMode="numeric"
-        autoComplete="tel"
-        placeholder="010-0000-0000"
-      />
+
+      {!firebaseReady ? (
+        <div className="notice" role="note">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <div>
+            <strong>Firebase 설정이 아직 없어요</strong>
+            <p className="sm">client/.env.local에 Firebase 값을 넣으면 로그인을 쓸 수 있어요.</p>
+          </div>
+        </div>
+      ) : null}
+
+      <Button icon={<Globe size={18} aria-hidden="true" />} onClick={() => void handleGoogle()} disabled={loading || !firebaseReady}>
+        Google로 계속하기
+      </Button>
+
+      <div className="divider" role="separator">
+        또는
+      </div>
+
+      <form className="form-stack" onSubmit={(event) => void handleSubmit(event)} noValidate>
+        <Field
+          label="이메일"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          placeholder="you@example.com"
+          disabled={loading || !firebaseReady}
+        />
+        <Field
+          label="비밀번호"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          placeholder="6자 이상"
+          disabled={loading || !firebaseReady}
+        />
+        {error ? <p className="field__error">{error}</p> : null}
+        <Button type="submit" variant="line" disabled={loading || !firebaseReady}>
+          {mode === 'login' ? '이메일로 로그인' : '이메일로 회원가입'}
+        </Button>
+      </form>
+
+      <button
+        type="button"
+        className="link-btn"
+        onClick={() => {
+          setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
+          setError(null);
+        }}
+      >
+        {mode === 'login' ? '처음이신가요? 이메일로 회원가입' : '이미 계정이 있으신가요? 로그인'}
+      </button>
+
       <div className="spacer" />
-      <Button type="submit">확인</Button>
-    </form>
+      <Button variant="ghost" onClick={goHome}>
+        나중에 할게요
+      </Button>
+    </div>
   );
 }

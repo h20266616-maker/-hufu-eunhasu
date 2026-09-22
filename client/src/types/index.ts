@@ -1,4 +1,4 @@
-export type TabId = 'receipt' | 'map' | 'stamp' | 'shop' | 'my';
+export type TabId = 'receipt' | 'map' | 'community' | 'stamp' | 'my';
 export type Role = 'traveler' | 'owner';
 export type Board = 'traveler' | 'owner';
 
@@ -24,6 +24,8 @@ export interface StampSpot {
   name: string;
   icon: IconKey;
   hint: string;
+  lat: number;
+  lng: number;
 }
 
 export interface StampRecord {
@@ -38,6 +40,8 @@ export interface StampReward {
   title: string;
   description: string;
   cash: number;
+  /** 군인 인증 회원에게만 보이는 특전 */
+  soldierOnly?: boolean;
 }
 
 export type PlaceKind = 'eat' | 'see';
@@ -51,6 +55,8 @@ export interface MapPlace {
   icon: IconKey;
   x: number;
   y: number;
+  lat: number;
+  lng: number;
   stampId?: string;
 }
 
@@ -59,6 +65,8 @@ export interface BikeStation {
   name: string;
   x: number;
   y: number;
+  lat: number;
+  lng: number;
   bikes: number;
   distance: string;
 }
@@ -121,6 +129,9 @@ export interface Profile {
   account: string;
   role: Role;
   consent: boolean;
+  soldierVerified: boolean;
+  soldierUnit: string;
+  soldierDischargeDate: string;
 }
 
 export type NotificationKey = 'cashback' | 'stamp' | 'community' | 'marketing';
@@ -133,7 +144,9 @@ export interface NotificationSetting {
 
 export interface Comment {
   id: string;
+  postId: string;
   author: string;
+  authorUid: string;
   body: string;
   createdAt: number;
   mine: boolean;
@@ -146,10 +159,11 @@ export interface Post {
   title: string;
   body: string;
   author: string;
+  authorUid: string;
   createdAt: number;
   likes: number;
   liked: boolean;
-  comments: Comment[];
+  commentCount: number;
   mine: boolean;
 }
 
@@ -181,6 +195,7 @@ export type Route =
   | { name: 'shop' }
   | { name: 'my' }
   | { name: 'personalInfo' }
+  | { name: 'soldierVerify' }
   | { name: 'receiptHistory' }
   | { name: 'notifications' }
   | { name: 'myPosts' }

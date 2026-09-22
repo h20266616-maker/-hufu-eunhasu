@@ -1,12 +1,15 @@
-import { Pencil } from 'lucide-react';
+import { Pencil, Shield } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Field } from '../components/ui/Field';
+import { ErrorState } from '../components/ui/StateMessage';
 import { SegmentControl } from '../components/ui/SegmentControl';
+import { Tag } from '../components/ui/Tag';
 import { Toggle } from '../components/ui/Toggle';
 import { useApp } from '../context/AppContext';
+import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
 import { CONSENT_NOTICE } from '../data';
 import type { Profile, Role } from '../types';
@@ -41,11 +44,21 @@ function validate(draft: Draft): DraftErrors {
 }
 
 export function PersonalInfoPage() {
-  const { profile, updateProfile } = useApp();
+  const { uid, profile, updateProfile } = useApp();
+  const { push } = useNav();
   const showToast = useToast();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile));
   const [errors, setErrors] = useState<DraftErrors>({});
+
+  if (!uid) {
+    return (
+      <div className="page">
+        <ScreenHeader title="개인정보 관리" />
+        <ErrorState title="로그인이 필요해요" description="개인정보 관리는 로그인 후 이용할 수 있어요." />
+      </div>
+    );
+  }
 
   const setField = (key: keyof Draft) => (value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
 
@@ -60,12 +73,12 @@ export function PersonalInfoPage() {
     setEditing(false);
   };
 
-  const handleSave = (event: SubmitEvent) => {
+  const handleSave = async (event: SubmitEvent) => {
     event.preventDefault();
     const next = validate(draft);
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    updateProfile({
+    await updateProfile({
       nickname: draft.nickname.trim(),
       name: draft.name.trim(),
       phone: draft.phone.trim(),
@@ -77,13 +90,17 @@ export function PersonalInfoPage() {
     showToast('개인정보를 저장했어요');
   };
 
-  const handleRoleChange = (role: Role) => {
-    updateProfile({ role });
+  const handleRoleChange = async (role: Role) => {
+    if (role === 'owner') {
+      await updateProfile({ role, soldierVerified: false, soldierUnit: '', soldierDischargeDate: '' });
+    } else {
+      await updateProfile({ role });
+    }
     showToast(role === 'owner' ? '사장님 회원으로 전환했어요' : '여행자 회원으로 전환했어요');
   };
 
-  const handleConsentChange = (consent: boolean) => {
-    updateProfile({ consent });
+  const handleConsentChange = async (consent: boolean) => {
+    await updateProfile({ consent });
     showToast(consent ? '개인정보 수집·이용에 동의했어요' : '동의를 철회했어요');
   };
 
@@ -101,7 +118,7 @@ export function PersonalInfoPage() {
       />
 
       {editing ? (
-        <form className="form-stack" onSubmit={handleSave} noValidate>
+        <form className="form-stack" onSubmit={(event) => void handleSave(event)} noValidate>
           <Field label="닉네임" value={draft.nickname} onChange={(e) => setField('nickname')(e.target.value)} error={errors.nickname} maxLength={12} />
           <Field label="이름" value={draft.name} onChange={(e) => setField('name')(e.target.value)} error={errors.name} autoComplete="name" />
           <Field label="연락처" value={draft.phone} onChange={(e) => setField('phone')(e.target.value)} error={errors.phone} inputMode="numeric" autoComplete="tel" />
@@ -150,7 +167,7 @@ export function PersonalInfoPage() {
             <strong>개인정보 수집·이용 동의</strong>
             <div className="sm">{profile.consent ? '동의함' : '동의하지 않음'}</div>
           </div>
-          <Toggle checked={profile.consent} onChange={handleConsentChange} label="개인정보 수집·이용 동의" />
+          <Toggle checked={profile.consent} onChange={(value) => void handleConsentChange(value)} label="개인정보 수집·이용 동의" />
         </div>
         <ul className="notice-list">
           {CONSENT_NOTICE.map((line) => (
@@ -163,8 +180,30 @@ export function PersonalInfoPage() {
       <Card>
         <strong>회원 유형</strong>
         <p className="sm">사장님 회원은 사장님 커뮤니티에 글쓰기·댓글을 남길 수 있어요. (시연용 즉시 전환, 실서비스는 사업자 인증 필요)</p>
-        <SegmentControl options={ROLE_OPTIONS} value={profile.role} onChange={handleRoleChange} ariaLabel="회원 유형" />
+        <SegmentControl options={ROLE_OPTIONS} value={profile.role} onChange={(value) => void handleRoleChange(value)} ariaLabel="회원 유형" />
       </Card>
+
+      {profile.role === 'traveler' ? (
+        <Card className="row">
+          <div>
+            <strong>군인 인증</strong>
+            <div className="sm">
+              {profile.soldierVerified
+                ? `인증 완료 · 캐시백 1.5배 적용 중`
+                : '인증하면 캐시백을 더 많이 받을 수 있어요'}
+            </div>
+          </div>
+          {profile.soldierVerified ? (
+            <Tag>
+              <Shield size={12} aria-hidden="true" /> 인증됨
+            </Tag>
+          ) : (
+            <Button className="btn--small" onClick={() => push({ name: 'soldierVerify' })}>
+              신청하기
+            </Button>
+          )}
+        </Card>
+      ) : null}
     </div>
   );
 }

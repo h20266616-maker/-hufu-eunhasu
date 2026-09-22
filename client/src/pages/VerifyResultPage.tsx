@@ -8,6 +8,7 @@ import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
 import { STAMP_REWARDS, STAMP_SPOTS } from '../data';
+import { getEffectiveRate } from '../utils/cashback';
 import { formatWon } from '../utils/format';
 
 interface VerifyResultPageProps {
@@ -17,9 +18,11 @@ interface VerifyResultPageProps {
 }
 
 export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResultPageProps) {
-  const { receipts, cash, currentTier, nextTier } = useApp();
-  const { switchTab } = useNav();
+  const { receipts, cash, currentTier, nextTier, profile } = useApp();
+  const { push, switchTab } = useNav();
   const reduceMotion = useReducedMotion();
+  const effectiveRate = getEffectiveRate(currentTier.rate, profile.soldierVerified);
+  const nextEffectiveRate = nextTier ? getEffectiveRate(nextTier.rate, profile.soldierVerified) : null;
 
   const receipt = receipts.find((item) => item.id === receiptId);
   const spot = STAMP_SPOTS.find((item) => item.id === stampId);
@@ -96,10 +99,12 @@ export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResult
         <div>
           <strong>다음 인증부터</strong>
           <div className="sm">
-            {nextTier ? `${nextTier.minCount - receipts.length}번 더 인증하면 ${nextTier.rate}%` : '최고 등급 적용 중'}
+            {nextTier && nextEffectiveRate !== null
+              ? `${nextTier.minCount - receipts.length}번 더 인증하면 ${nextEffectiveRate}%`
+              : '최고 등급 적용 중'}
           </div>
         </div>
-        <Tag>{currentTier.rate}%</Tag>
+        <Tag>{effectiveRate}%</Tag>
       </Card>
       <Card className="row">
         <div>
@@ -110,7 +115,7 @@ export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResult
       </Card>
 
       <div className="spacer" />
-      <Button onClick={() => switchTab('shop')}>캐시 쓰러 가기</Button>
+      <Button onClick={() => push({ name: 'shop' })}>캐시 쓰러 가기</Button>
       <Button variant="ghost" onClick={() => switchTab('receipt')}>
         홈으로
       </Button>

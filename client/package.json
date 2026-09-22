@@ -10,21 +10,25 @@
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit",
     "sync": "npm run build && cap sync android",
-    "open": "cap open android"
+    "open": "cap open android",
+    "seed:community": "node scripts/seedCommunity.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
+    "firebase": "^12.19.0",
     "lucide-react": "^1.47.0",
     "motion": "^13.4.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "react-kakao-maps-sdk": "^1.2.2"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "firebase-admin": "^14.4.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
   }

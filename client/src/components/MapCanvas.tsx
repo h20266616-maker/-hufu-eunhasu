@@ -8,6 +8,8 @@ export interface MapMarker {
   label: string;
   x: number;
   y: number;
+  lat: number;
+  lng: number;
   badge?: number;
 }
 

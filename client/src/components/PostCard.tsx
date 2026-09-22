@@ -23,8 +23,8 @@ export function PostCard({ post, onOpen }: PostCardProps) {
           <span aria-label={`좋아요 ${post.likes}개`}>
             <Heart size={14} aria-hidden="true" fill={post.liked ? 'currentColor' : 'none'} /> {post.likes}
           </span>
-          <span aria-label={`댓글 ${post.comments.length}개`}>
-            <MessageCircle size={14} aria-hidden="true" /> {post.comments.length}
+          <span aria-label={`댓글 ${post.commentCount}개`}>
+            <MessageCircle size={14} aria-hidden="true" /> {post.commentCount}
           </span>
         </span>
       </div>

@@ -482,6 +482,35 @@
   cursor: not-allowed;
 }
 
+/* ---------- 구분선·링크 버튼 ---------- */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sub-strong);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.link-btn {
+  min-height: 44px;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
 /* ---------- 안내 박스 ---------- */
 .notice {
   display: flex;

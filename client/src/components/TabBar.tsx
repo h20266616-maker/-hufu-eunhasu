@@ -1,4 +1,4 @@
-import { Map as MapIcon, Receipt, ShoppingBag, Stamp, User, type LucideIcon } from 'lucide-react';
+import { Map as MapIcon, MessageCircle, Receipt, Stamp, User, type LucideIcon } from 'lucide-react';
 import { useNav } from '../context/NavContext';
 import type { TabId } from '../types';
 
@@ -11,15 +11,15 @@ interface TabItem {
 const TABS: readonly TabItem[] = [
   { id: 'receipt', label: '영수증 인증', Icon: Receipt },
   { id: 'map', label: '지도·자전거', Icon: MapIcon },
+  { id: 'community', label: '커뮤니티', Icon: MessageCircle },
   { id: 'stamp', label: '스탬프', Icon: Stamp },
-  { id: 'shop', label: '특산물 상점', Icon: ShoppingBag },
   { id: 'my', label: 'MY', Icon: User },
 ];
 
-export function TabBar() {
+export function TabBar({ hidden }: { hidden: boolean }) {
   const { tab, switchTab } = useNav();
   return (
-    <nav className="tabbar" aria-label="주요 메뉴">
+    <nav className={`tabbar${hidden ? ' tabbar--hidden' : ''}`} aria-label="주요 메뉴">
       {TABS.map(({ id, label, Icon }) => {
         const active = id === tab;
         return (

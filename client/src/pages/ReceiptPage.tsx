@@ -1,20 +1,23 @@
-import { Banknote, Camera, ChevronRight, Images, RotateCcw, ScanLine, Users } from 'lucide-react';
+import { Banknote, Camera, Images, LogIn, RotateCcw, ScanLine } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
-import { Card, CardButton } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
+import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
 import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
 import { isCameraSupported } from '../utils/camera';
 
 export function ReceiptPage() {
+  const { uid } = useApp();
   const { push } = useNav();
   const { status, errorMessage, submit, reset } = useVerifyFlow();
+  const loggedIn = uid !== null;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -66,18 +69,27 @@ export function ReceiptPage() {
     reset();
   };
 
+  const handleVerifyClick = () => {
+    if (!loggedIn) {
+      push({ name: 'login' });
+      return;
+    }
+    void submit({ source: 'photo' });
+  };
+
   return (
     <div className="page">
-      <CardButton className="banner" onClick={() => push({ name: 'community' })}>
-        <span className="banner__icon">
-          <Users size={20} aria-hidden="true" />
-        </span>
-        <span className="banner__text">
-          <strong>화천 커뮤니티</strong>
-          <span className="sm">자전거 코스 후기부터 가게 소식까지</span>
-        </span>
-        <ChevronRight size={20} aria-hidden="true" />
-      </CardButton>
+      {loggedIn ? null : (
+        <Card className="row">
+          <div>
+            <strong>로그인하고 시작해요</strong>
+            <div className="sm">인증·스탬프·커뮤니티 글쓰기는 로그인 후 이용할 수 있어요</div>
+          </div>
+          <Button className="btn--small" icon={<LogIn size={16} aria-hidden="true" />} onClick={() => push({ name: 'login' })}>
+            로그인
+          </Button>
+        </Card>
+      )}
 
       <CashbackSummary />
 
@@ -97,7 +109,7 @@ export function ReceiptPage() {
             title="인증에 실패했어요"
             description={errorMessage}
             action={
-              <Button variant="line" onClick={() => void submit({ source: 'photo' })}>
+              <Button variant="line" onClick={handleVerifyClick}>
                 다시 시도
               </Button>
             }
@@ -129,12 +141,8 @@ export function ReceiptPage() {
             <Button variant="line" icon={<RotateCcw size={18} aria-hidden="true" />} onClick={handleRetake} disabled={loading}>
               다시 선택
             </Button>
-            <Button
-              icon={<ScanLine size={18} aria-hidden="true" />}
-              onClick={() => void submit({ source: 'photo' })}
-              disabled={loading}
-            >
-              {loading ? '인증 중…' : '인증하기'}
+            <Button icon={<ScanLine size={18} aria-hidden="true" />} onClick={handleVerifyClick} disabled={loading}>
+              {loading ? '인증 중…' : loggedIn ? '인증하기' : '로그인하고 인증하기'}
             </Button>
           </div>
         ) : (

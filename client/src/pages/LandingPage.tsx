@@ -3,7 +3,7 @@ import { useNav } from '../context/NavContext';
 import { Button } from '../components/ui/Button';
 
 export function LandingPage() {
-  const { push } = useNav();
+  const { reset } = useNav();
   return (
     <div className="page">
       <div className="spacer" />
@@ -21,7 +21,7 @@ export function LandingPage() {
         쌓인 캐시로 화천 특산물을 주문할 수 있어요.
       </p>
       <div className="spacer" />
-      <Button onClick={() => push({ name: 'login' })}>시작하기</Button>
+      <Button onClick={() => reset({ name: 'receipt' }, 'receipt')}>둘러보기 시작</Button>
       <p className="sm center landing__foot">화천군 · 타운마이스 지역상생 영수증</p>
     </div>
   );

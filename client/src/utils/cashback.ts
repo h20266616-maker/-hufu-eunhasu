@@ -1,4 +1,4 @@
-import { CASHBACK_TIERS } from '../data';
+import { CASHBACK_TIERS, SOLDIER_CASHBACK_MULTIPLIER } from '../data';
 import type { CashbackTier } from '../types';
 
 export function getTier(verifiedCount: number): CashbackTier {
@@ -19,4 +19,9 @@ export function getMaxTierCount(): number {
 
 export function calcCashback(amount: number, rate: number): number {
   return Math.round((amount * rate) / 100);
+}
+
+/** 군인 인증 회원이면 기본 등급 캐시백률에 배율을 곱한다 */
+export function getEffectiveRate(baseRate: number, isSoldier: boolean): number {
+  return isSoldier ? Math.round(baseRate * SOLDIER_CASHBACK_MULTIPLIER * 10) / 10 : baseRate;
 }

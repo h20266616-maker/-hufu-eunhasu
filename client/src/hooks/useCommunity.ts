@@ -1,31 +1,29 @@
-import { useCallback } from 'react';
-import { SEED_POSTS } from '../data';
+import {
+  addDoc,
+  arrayRemove,
+  arrayUnion,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+  doc,
+} from 'firebase/firestore';
+import { useCallback, useEffect, useState } from 'react';
+import { db } from '../lib/firebase';
 import type { Board, Post } from '../types';
-import { usePersistentState } from './usePersistentState';
+import { useLatest } from './useLatest';
 
-const MINUTE_MS = 60_000;
-
-function buildSeedPosts(): Post[] {
-  const now = Date.now();
-  return SEED_POSTS.map((seed, postIndex) => ({
-    id: `seed-${postIndex}`,
-    board: seed.board,
-    category: seed.category,
-    title: seed.title,
-    body: seed.body,
-    author: seed.author,
-    createdAt: now - seed.minutesAgo * MINUTE_MS,
-    likes: seed.likes,
-    liked: false,
-    mine: false,
-    comments: seed.comments.map((comment, commentIndex) => ({
-      id: `seed-${postIndex}-comment-${commentIndex}`,
-      author: comment.author,
-      body: comment.body,
-      createdAt: now - comment.minutesAgo * MINUTE_MS,
-      mine: false,
-    })),
-  }));
+interface PostDoc {
+  board: Board;
+  category: string;
+  title: string;
+  body: string;
+  author: string;
+  authorUid: string;
+  createdAt: number;
+  likedBy: string[];
+  commentCount: number;
 }
 
 export interface NewPostInput {
@@ -36,48 +34,68 @@ export interface NewPostInput {
   author: string;
 }
 
-export function useCommunity() {
-  const [posts, setPosts] = usePersistentState<Post[]>('posts', buildSeedPosts);
+/** posts 컬렉션을 실시간 구독한다. 로그인하지 않아도 목록은 읽을 수 있다 */
+export function useCommunity(uid: string | null) {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const postsRef = useLatest(posts);
+
+  useEffect(() => {
+    if (!db) {
+      setPosts([]);
+      return undefined;
+    }
+    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      setPosts(
+        snap.docs.map((item) => {
+          const data = item.data() as PostDoc;
+          const likedBy = data.likedBy ?? [];
+          return {
+            id: item.id,
+            board: data.board,
+            category: data.category,
+            title: data.title,
+            body: data.body,
+            author: data.author,
+            authorUid: data.authorUid,
+            createdAt: data.createdAt,
+            likes: likedBy.length,
+            liked: uid !== null && likedBy.includes(uid),
+            commentCount: data.commentCount ?? 0,
+            mine: uid !== null && data.authorUid === uid,
+          };
+        }),
+      );
+    });
+    return unsubscribe;
+  }, [uid]);
 
   const toggleLike = useCallback(
-    (postId: string) => {
-      setPosts((prev) =>
-        prev.map((post) =>
-          post.id === postId
-            ? { ...post, liked: !post.liked, likes: post.likes + (post.liked ? -1 : 1) }
-            : post,
-        ),
-      );
+    async (postId: string) => {
+      if (!uid || !db) return;
+      const post = postsRef.current.find((item) => item.id === postId);
+      if (!post) return;
+      await updateDoc(doc(db, 'posts', postId), {
+        likedBy: post.liked ? arrayRemove(uid) : arrayUnion(uid),
+      });
     },
-    [setPosts],
-  );
-
-  const addComment = useCallback(
-    (postId: string, body: string, author: string) => {
-      const comment = { id: `comment-${Date.now()}`, author, body, createdAt: Date.now(), mine: true };
-      setPosts((prev) =>
-        prev.map((post) => (post.id === postId ? { ...post, comments: [...post.comments, comment] } : post)),
-      );
-    },
-    [setPosts],
+    [postsRef, uid],
   );
 
   const addPost = useCallback(
-    (input: NewPostInput): Post => {
-      const post: Post = {
-        id: `post-${Date.now()}`,
+    async (input: NewPostInput): Promise<string> => {
+      if (!uid || !db) throw new Error('로그인이 필요해요');
+      const ref = await addDoc(collection(db, 'posts'), {
         ...input,
+        authorUid: uid,
         createdAt: Date.now(),
-        likes: 0,
-        liked: false,
-        comments: [],
-        mine: true,
-      };
-      setPosts((prev) => [post, ...prev]);
-      return post;
+        likedBy: [],
+        commentCount: 0,
+      });
+      return ref.id;
     },
-    [setPosts],
+    [uid],
   );
 
-  return { posts, toggleLike, addComment, addPost };
+  return { posts, toggleLike, addPost };
 }

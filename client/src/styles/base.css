@@ -4,7 +4,11 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  height: 100%;
+  height: 100dvh;
+}
+
 body,
 #root {
   height: 100%;
@@ -15,6 +19,7 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-size: 16px;
   line-height: 1.45;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -71,8 +76,7 @@ p {
   flex-direction: column;
   width: 100%;
   max-width: var(--frame-w);
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
   background: var(--bg);
   padding-top: env(safe-area-inset-top, 0px);
@@ -134,13 +138,13 @@ p {
 
 .sub {
   color: var(--sub-strong);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
 .sm {
   color: var(--sub-strong);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -232,6 +236,12 @@ p {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--card);
   border-top: 1px solid var(--line);
+  transform: translateY(0);
+  transition: transform 200ms ease;
+}
+
+.tabbar--hidden {
+  transform: translateY(100%);
 }
 
 .tabbar__item {
@@ -247,7 +257,7 @@ p {
   border: 0;
   background: transparent;
   color: var(--sub-strong);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;

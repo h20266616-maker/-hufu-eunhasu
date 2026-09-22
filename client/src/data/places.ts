@@ -9,6 +9,8 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'restaurant',
     x: 30,
     y: 35,
+    lat: 38.1066,
+    lng: 127.7082,
     stampId: 'makguksu',
   },
   {
@@ -19,6 +21,8 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'market',
     x: 63,
     y: 28,
+    lat: 38.1069,
+    lng: 127.7078,
     stampId: 'joongang-market',
   },
   {
@@ -29,6 +33,8 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'island',
     x: 58,
     y: 62,
+    lat: 38.1063,
+    lng: 127.7104,
     stampId: 'bungeoseom',
   },
   {
@@ -39,12 +45,44 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'dam',
     x: 80,
     y: 72,
+    lat: 38.2764,
+    lng: 127.8248,
     stampId: 'peace-dam',
   },
 ];
 
 export const BIKE_STATIONS: readonly BikeStation[] = [
-  { id: 'station-terminal', name: '화천버스터미널', x: 18, y: 74, bikes: 6, distance: '도보 1분' },
-  { id: 'station-market', name: '화천중앙시장', x: 70, y: 46, bikes: 4, distance: '1.2km' },
-  { id: 'station-bungeoseom', name: '붕어섬 입구', x: 36, y: 54, bikes: 9, distance: '2.4km' },
+  {
+    id: 'station-terminal',
+    name: '화천버스터미널',
+    x: 18,
+    y: 74,
+    lat: 38.1042,
+    lng: 127.707,
+    bikes: 6,
+    distance: '도보 1분',
+  },
+  {
+    id: 'station-market',
+    name: '화천중앙시장',
+    x: 70,
+    y: 46,
+    lat: 38.1069,
+    lng: 127.7078,
+    bikes: 4,
+    distance: '1.2km',
+  },
+  {
+    id: 'station-bungeoseom',
+    name: '붕어섬 입구',
+    x: 36,
+    y: 54,
+    lat: 38.105,
+    lng: 127.7098,
+    bikes: 9,
+    distance: '2.4km',
+  },
 ];
+
+/** 지도 중심 (화천읍) */
+export const MAP_CENTER = { lat: 38.1064, lng: 127.7089 };

@@ -7,20 +7,15 @@ import { CardButton } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/StateMessage';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
+import { useMyComments } from '../hooks/useMyComments';
 import { formatRelative } from '../utils/format';
 
 export function MyPostsPage() {
-  const { posts } = useApp();
+  const { uid, posts } = useApp();
   const { push } = useNav();
+  const myComments = useMyComments(uid);
 
   const myPosts = useMemo(() => posts.filter((post) => post.mine).sort((a, b) => b.createdAt - a.createdAt), [posts]);
-  const myComments = useMemo(
-    () =>
-      posts
-        .flatMap((post) => post.comments.filter((comment) => comment.mine).map((comment) => ({ post, comment })))
-        .sort((a, b) => b.comment.createdAt - a.comment.createdAt),
-    [posts],
-  );
 
   const openPost = (postId: string) => push({ name: 'postDetail', postId });
 
@@ -51,12 +46,10 @@ export function MyPostsPage() {
         {myComments.length === 0 ? (
           <p className="sm">아직 남긴 댓글이 없어요.</p>
         ) : (
-          myComments.map(({ post, comment }) => (
-            <CardButton key={comment.id} onClick={() => openPost(post.id)} aria-label={`${post.title} 게시글의 내 댓글 열기`}>
+          myComments.map((comment) => (
+            <CardButton key={comment.id} onClick={() => openPost(comment.postId)} aria-label="댓글을 남긴 게시글 열기">
               <strong>{comment.body}</strong>
-              <div className="sm">
-                {post.title} · {formatRelative(comment.createdAt)}
-              </div>
+              <div className="sm">{formatRelative(comment.createdAt)}</div>
             </CardButton>
           ))
         )}

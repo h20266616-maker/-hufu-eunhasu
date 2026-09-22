@@ -1,22 +1,38 @@
-import { useCallback, useState } from 'react';
+import { deleteField, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { useCallback, useEffect, useState } from 'react';
 import { STAMP_REWARDS, STAMP_SPOTS } from '../data';
+import { db } from '../lib/firebase';
 import type { StampRecord, StampSpot } from '../types';
 import { useLatest } from './useLatest';
-import { usePersistentState } from './usePersistentState';
 
 export interface AwardResult {
   spot: StampSpot;
   unlockedRewardIds: string[];
 }
 
-export function useStamps() {
-  const [stamps, setStamps] = usePersistentState<StampRecord[]>('stamps', () => []);
+/** stamps/{uid} 문서 하나에 스탬프 지점별 획득 시각을 map으로 저장한다 */
+export function useStamps(uid: string | null) {
+  const [stamps, setStamps] = useState<StampRecord[]>([]);
   const [freshStampId, setFreshStampId] = useState<string | null>(null);
   const stampsRef = useLatest(stamps);
 
+  useEffect(() => {
+    if (!uid || !db) {
+      setStamps([]);
+      return undefined;
+    }
+    const ref = doc(db, 'stamps', uid);
+    const unsubscribe = onSnapshot(ref, (snap) => {
+      const records = (snap.data()?.records ?? {}) as Record<string, string>;
+      setStamps(Object.entries(records).map(([spotId, earnedAt]) => ({ spotId, earnedAt })));
+    });
+    return unsubscribe;
+  }, [uid]);
+
   /** 선호 스탬프가 이미 있으면 아직 안 찍은 첫 스탬프로 대체한다. 모두 찍었다면 null */
   const awardStamp = useCallback(
-    (preferredId?: string): AwardResult | null => {
+    async (preferredId?: string): Promise<AwardResult | null> => {
+      if (!uid || !db) return null;
       const owned = new Set(stampsRef.current.map((stamp) => stamp.spotId));
       const preferred = STAMP_SPOTS.find((spot) => spot.id === preferredId && !owned.has(spot.id));
       const target = preferred ?? STAMP_SPOTS.find((spot) => !owned.has(spot.id));
@@ -24,7 +40,7 @@ export function useStamps() {
 
       const before = stampsRef.current.length;
       const after = before + 1;
-      setStamps((prev) => [...prev, { spotId: target.id, earnedAt: new Date().toISOString() }]);
+      await setDoc(doc(db, 'stamps', uid), { records: { [target.id]: new Date().toISOString() } }, { merge: true });
       setFreshStampId(target.id);
 
       const unlockedRewardIds = STAMP_REWARDS.filter(
@@ -32,22 +48,31 @@ export function useStamps() {
       ).map((reward) => reward.id);
       return { spot: target, unlockedRewardIds };
     },
-    [setStamps, stampsRef],
+    [stampsRef, uid],
   );
 
   const toggleStamp = useCallback(
-    (spotId: string) => {
+    async (spotId: string) => {
+      if (!uid || !db) return;
       const owned = stampsRef.current.some((stamp) => stamp.spotId === spotId);
       if (owned) {
-        setStamps((prev) => prev.filter((stamp) => stamp.spotId !== spotId));
+        try {
+          await setDoc(doc(db, 'stamps', uid), { records: { [spotId]: deleteField() } }, { merge: true });
+        } catch {
+          // 문서가 아직 없으면 지울 것도 없다
+        }
       } else {
-        awardStamp(spotId);
+        await awardStamp(spotId);
       }
     },
-    [awardStamp, setStamps, stampsRef],
+    [awardStamp, stampsRef, uid],
   );
 
-  const clearStamps = useCallback(() => setStamps([]), [setStamps]);
+  const clearStamps = useCallback(async () => {
+    if (!uid || !db) return;
+    await setDoc(doc(db, 'stamps', uid), { records: {} });
+  }, [uid]);
+
   const clearFreshStamp = useCallback(() => setFreshStampId(null), []);
 
   return { stamps, freshStampId, awardStamp, toggleStamp, clearStamps, clearFreshStamp };
