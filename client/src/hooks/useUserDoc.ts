@@ -5,29 +5,50 @@ import { db } from '../lib/firebase';
 import type { NotificationKey, Profile } from '../types';
 
 export interface UserDoc extends Profile {
-  cash: number;
-  cumulativeCashback: number;
+  /** 지금 쓸 수 있는 잔액. 인증으로 늘고 사용으로 준다 */
+  currentCashback: number;
+  /** 한 번이라도 적립된 전체 금액. 사용해도 줄지 않는다 */
+  totalCashback: number;
+  /** 지금까지 사용한 금액의 합. currentCashback + usedCashback = totalCashback을 유지한다 */
+  usedCashback: number;
   claimedRewards: string[];
   notificationPrefs: Record<NotificationKey, boolean>;
 }
 
 const DEFAULT_USER_DOC: UserDoc = {
   ...DEFAULT_PROFILE,
-  cash: 0,
-  cumulativeCashback: 0,
+  currentCashback: 0,
+  totalCashback: 0,
+  usedCashback: 0,
   claimedRewards: [],
   notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
 };
 
 const GUEST_USER_DOC: UserDoc = {
   ...GUEST_PROFILE,
-  cash: 0,
-  cumulativeCashback: 0,
+  currentCashback: 0,
+  totalCashback: 0,
+  usedCashback: 0,
   claimedRewards: [],
   notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
 };
 
-/** users/{uid} 문서 전체(개인정보·캐시·스탬프 보상·알림 설정)를 구독한다 */
+/** 예전 필드명(cash/cumulativeCashback)으로 저장된 문서를 읽어도 값이 사라지지 않게 한다 */
+interface LegacyFields {
+  cash?: number;
+  cumulativeCashback?: number;
+}
+
+function normalizeUserDoc(raw: Partial<UserDoc> & LegacyFields): Partial<UserDoc> {
+  const { cash, cumulativeCashback, ...rest } = raw;
+  return {
+    ...rest,
+    currentCashback: rest.currentCashback ?? cash,
+    totalCashback: rest.totalCashback ?? cumulativeCashback,
+  };
+}
+
+/** users/{uid} 문서 전체(개인정보·캐시백·스탬프 보상·알림 설정)를 구독한다 */
 export function useUserDoc(uid: string | null, fallback: { nickname?: string; email?: string }) {
   const [data, setData] = useState<UserDoc>(GUEST_USER_DOC);
   const [loaded, setLoaded] = useState(uid === null);
@@ -44,7 +65,7 @@ export function useUserDoc(uid: string | null, fallback: { nickname?: string; em
       ref,
       (snap) => {
         if (snap.exists()) {
-          setData({ ...DEFAULT_USER_DOC, ...(snap.data() as Partial<UserDoc>) });
+          setData({ ...DEFAULT_USER_DOC, ...normalizeUserDoc(snap.data() as Partial<UserDoc> & LegacyFields) });
         } else {
           const initial: UserDoc = {
             ...DEFAULT_USER_DOC,

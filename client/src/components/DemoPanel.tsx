@@ -8,10 +8,16 @@ import { STAMP_SPOTS } from '../data';
 import { formatWon } from '../utils/format';
 
 const DEMO_CASH_AMOUNT = 10000;
+const DEMO_USE_AMOUNT = 5000;
 
 export function DemoPanel() {
-  const { uid, stamps, toggleStamp, clearStamps, addCashDemo, failNextVerify, setFailNextVerify } = useApp();
+  const { uid, stamps, toggleStamp, clearStamps, addCashDemo, spendCash, failNextVerify, setFailNextVerify } = useApp();
   const showToast = useToast();
+
+  const handleUseDemo = async () => {
+    const ok = await spendCash(DEMO_USE_AMOUNT);
+    showToast(ok ? `캐시백 ${formatWon(DEMO_USE_AMOUNT)}을 사용했어요` : '사용 가능한 캐시백이 부족해요');
+  };
 
   if (!uid) {
     return (
@@ -54,6 +60,9 @@ export function DemoPanel() {
           }}
         >
           캐시 +{formatWon(DEMO_CASH_AMOUNT)}
+        </Button>
+        <Button variant="line" onClick={() => void handleUseDemo()}>
+          캐시백 {formatWon(DEMO_USE_AMOUNT)} 사용
         </Button>
       </div>
 

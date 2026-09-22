@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { CashbackBreakdown } from '../components/CashbackBreakdown';
 import { DemoPanel } from '../components/DemoPanel';
 import { MenuRow } from '../components/MenuRow';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -26,13 +27,12 @@ import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
 import { STAMP_SPOTS } from '../data';
-import { formatWon } from '../utils/format';
 
 const DEMO_TAP_COUNT = 5;
 const DEMO_TAP_WINDOW_MS = 1200;
 
 export function MyPage() {
-  const { uid, isGuest, profile, cumulativeCashback, stamps, claimedRewards } = useApp();
+  const { uid, isGuest, profile, currentCashback, totalCashback, usedCashback, stamps, claimedRewards } = useApp();
   const { user, signOutUser, deleteAccountMock } = useAuth();
   const { push, switchTab } = useNav();
   const showToast = useToast();
@@ -102,18 +102,13 @@ export function MyPage() {
               </div>
             </div>
           </div>
-          <dl className="profile__stats">
-            <div>
-              <dt className="sm">누적 캐시백</dt>
-              <dd>{formatWon(cumulativeCashback)}</dd>
-            </div>
-            <div>
-              <dt className="sm">스탬프</dt>
-              <dd>
-                {stamps.length} / {STAMP_SPOTS.length}
-              </dd>
-            </div>
-          </dl>
+          <CashbackBreakdown total={totalCashback} current={currentCashback} used={usedCashback} />
+          <div className="row">
+            <strong className="sm">스탬프</strong>
+            <Tag>
+              {stamps.length} / {STAMP_SPOTS.length}
+            </Tag>
+          </div>
           {claimedRewards.includes('badge') ? (
             <p className="profile__badge">
               <Award size={16} aria-hidden="true" /> 화천 완주 배지 보유
@@ -133,7 +128,7 @@ export function MyPage() {
       )}
 
       <nav className="menu" aria-label="MY 메뉴">
-        <MenuRow icon={ShoppingBag} label="특산물 상점" onClick={() => push({ name: 'shop' })} />
+        <MenuRow icon={ShoppingBag} label="특산물 상점" onClick={() => switchTab('shop')} />
         <MenuRow icon={Users} label="커뮤니티" onClick={() => push({ name: 'community' })} />
         {loggedIn ? (
           <>

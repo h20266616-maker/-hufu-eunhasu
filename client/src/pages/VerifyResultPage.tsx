@@ -18,8 +18,8 @@ interface VerifyResultPageProps {
 }
 
 export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResultPageProps) {
-  const { receipts, cash, currentTier, nextTier, profile } = useApp();
-  const { push, switchTab } = useNav();
+  const { receipts, currentCashback, currentTier, nextTier, profile } = useApp();
+  const { switchTab } = useNav();
   const reduceMotion = useReducedMotion();
   const effectiveRate = getEffectiveRate(currentTier.rate, profile.soldierVerified);
   const nextEffectiveRate = nextTier ? getEffectiveRate(nextTier.rate, profile.soldierVerified) : null;
@@ -111,11 +111,11 @@ export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResult
           <strong>내 캐시</strong>
           <div className="sm">특산물 상점에서 바로 사용 가능</div>
         </div>
-        <Tag>{formatWon(cash)}</Tag>
+        <Tag>{formatWon(currentCashback)}</Tag>
       </Card>
 
       <div className="spacer" />
-      <Button onClick={() => push({ name: 'shop' })}>캐시 쓰러 가기</Button>
+      <Button onClick={() => switchTab('shop')}>캐시 쓰러 가기</Button>
       <Button variant="ghost" onClick={() => switchTab('receipt')}>
         홈으로
       </Button>

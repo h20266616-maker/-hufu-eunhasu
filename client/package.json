@@ -22,7 +22,8 @@
     "lucide-react": "^1.47.0",
     "motion": "^13.4.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "react-kakao-maps-sdk": "^1.2.2"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.22",

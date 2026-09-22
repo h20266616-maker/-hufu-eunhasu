@@ -59,7 +59,6 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
     <div className="page">
       <ScreenHeader
         title="커뮤니티"
-        showBack={false}
         right={
           <Button
             variant="line"

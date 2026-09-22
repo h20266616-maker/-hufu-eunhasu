@@ -24,16 +24,3 @@ export function usePersistentState<T>(key: string, createInitial: () => T): [T, 
 
   return [state, setState];
 }
-
-export function clearPersistedState(): void {
-  try {
-    const keys: string[] = [];
-    for (let i = 0; i < window.localStorage.length; i += 1) {
-      const key = window.localStorage.key(i);
-      if (key?.startsWith(STORAGE_PREFIX)) keys.push(key);
-    }
-    keys.forEach((key) => window.localStorage.removeItem(key));
-  } catch {
-    // 무시
-  }
-}

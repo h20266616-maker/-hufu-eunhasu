@@ -22,7 +22,7 @@ interface NavContextValue {
 const TAB_ROOTS: Record<TabId, Route> = {
   receipt: { name: 'receipt' },
   map: { name: 'map' },
-  community: { name: 'community' },
+  shop: { name: 'shop' },
   stamp: { name: 'stamp' },
   my: { name: 'my' },
 };

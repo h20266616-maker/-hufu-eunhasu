@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { AppIcon } from '../components/AppIcon';
 import { BottomSheet } from '../components/BottomSheet';
@@ -8,21 +8,21 @@ import { Card, CardButton } from '../components/ui/Card';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
-import { PRODUCTS } from '../data';
+import { EXTERNAL_STORES, PRODUCTS } from '../data';
 import type { Product } from '../types';
 import { formatWon } from '../utils/format';
 
 export function ShopPage() {
-  const { cash, spendCash } = useApp();
+  const { currentCashback, spendCash } = useApp();
   const showToast = useToast();
   const [selected, setSelected] = useState<Product | null>(null);
 
-  const shortage = selected ? Math.max(0, selected.price - cash) : 0;
+  const shortage = selected ? Math.max(0, selected.price - currentCashback) : 0;
 
   const handleOrder = async () => {
     if (!selected) return;
     if (!(await spendCash(selected.price))) {
-      showToast(`캐시가 ${formatWon(selected.price - cash)} 부족해요`);
+      showToast(`캐시가 ${formatWon(selected.price - currentCashback)} 부족해요`);
       return;
     }
     showToast(`${selected.name} 주문 완료`);
@@ -31,13 +31,13 @@ export function ShopPage() {
 
   return (
     <div className="page">
-      <ScreenHeader title="특산물 상점" />
+      <ScreenHeader title="특산물 상점" showBack={false} />
       <Card className="row">
         <div>
           <strong>사용 가능한 캐시</strong>
           <div className="sm">화천에 다시 오지 않아도 쓸 수 있어요</div>
         </div>
-        <Tag>{formatWon(cash)}</Tag>
+        <Tag>{formatWon(currentCashback)}</Tag>
       </Card>
 
       <ul className="product-list">
@@ -62,6 +62,40 @@ export function ShopPage() {
         ))}
       </ul>
 
+      <section aria-labelledby="store-title">
+        <h2 id="store-title" className="section-title">
+          화천 농가 스토어 바로가기
+        </h2>
+        <p className="sub">캐시가 부족해도 화천 농가·소상공인 스마트스토어에서 바로 구매할 수 있어요.</p>
+        <ul className="store-list">
+          {EXTERNAL_STORES.map((store) => (
+            <li key={store.id}>
+              <Card className="store-card">
+                <div className="store-card__head">
+                  <span className="store-card__initial" aria-hidden="true">
+                    {store.name.charAt(0)}
+                  </span>
+                  <div>
+                    <strong>{store.name}</strong>
+                    <p className="sm">{store.tagline}</p>
+                  </div>
+                </div>
+                <a
+                  className="btn btn--line"
+                  href={store.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${store.name} 스토어 바로가기, 새 탭으로 열림`}
+                >
+                  <ExternalLink size={16} aria-hidden="true" />
+                  <span>스토어 바로가기</span>
+                </a>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <div className="spacer" />
       <p className="sm">상품권 대신 캐시로 돌려드립니다. 화천 농가의 온라인 판로가 함께 열립니다.</p>
 
@@ -76,7 +110,7 @@ export function ShopPage() {
               </div>
               <div className="row">
                 <span className="sm">내 캐시</span>
-                <strong>{formatWon(cash)}</strong>
+                <strong>{formatWon(currentCashback)}</strong>
               </div>
             </div>
             {shortage > 0 ? <p className="sheet__warn">캐시가 {formatWon(shortage)} 부족해요. 영수증을 더 인증해 보세요.</p> : null}

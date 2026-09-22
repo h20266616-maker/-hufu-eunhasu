@@ -1,5 +1,7 @@
+import { MapPinOff } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { BottomSheet } from '../components/BottomSheet';
+import { KakaoMap } from '../components/KakaoMap';
 import { LeafletMap } from '../components/LeafletMap';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
@@ -19,13 +21,17 @@ const FILTERS: readonly { value: MapFilter; label: string }[] = [
   { value: 'bike', label: '자전거' },
 ];
 
+const KAKAO_MAP_KEY = import.meta.env.VITE_KAKAO_MAP_KEY;
+
 export function MapPage() {
   const { ride, bikeStock, startRide, endRide } = useApp();
   const { switchTab } = useNav();
   const showToast = useToast();
   const [filter, setFilter] = useState<MapFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [kakaoFailed, setKakaoFailed] = useState(false);
   const elapsed = useElapsedSeconds(ride?.startedAt ?? null);
+  const useKakao = Boolean(KAKAO_MAP_KEY) && !kakaoFailed;
 
   const markers = useMemo<MapMarker[]>(() => {
     const places: MapMarker[] = MAP_PLACES.filter((place) => filter === 'all' || place.kind === filter).map(
@@ -63,6 +69,15 @@ export function MapPage() {
     <div className="page page--map">
       <ScreenHeader title="지도·자전거" showBack={false} />
 
+      {useKakao ? null : (
+        <div className="map-notice" role="note">
+          <MapPinOff size={16} aria-hidden="true" />
+          {KAKAO_MAP_KEY
+            ? '카카오맵을 불러오지 못했어요. 지금은 OpenStreetMap 지도로 보여드려요.'
+            : '카카오맵 키를 등록해주세요. 지금은 OpenStreetMap 지도로 보여드려요.'}
+        </div>
+      )}
+
       <div className="chips" role="group" aria-label="지도 필터">
         {FILTERS.map((item) => (
           <Chip key={item.value} selected={filter === item.value} onClick={() => setFilter(item.value)}>
@@ -71,7 +86,17 @@ export function MapPage() {
         ))}
       </div>
 
-      <LeafletMap markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
+      {useKakao ? (
+        <KakaoMap
+          appKey={KAKAO_MAP_KEY as string}
+          markers={markers}
+          selectedId={visibleSelectedId}
+          onSelect={setSelectedId}
+          onLoadError={() => setKakaoFailed(true)}
+        />
+      ) : (
+        <LeafletMap markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
+      )}
 
       <BottomSheet open label="지도 상세 정보">
         {ride ? (

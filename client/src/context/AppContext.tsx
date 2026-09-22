@@ -32,7 +32,12 @@ const LOGIN_REQUIRED_MESSAGE = '로그인하고 인증해 주세요.';
 
 interface GuestState {
   profile: Profile;
-  cash: number;
+  /** 지금 쓸 수 있는 잔액 */
+  currentCashback: number;
+  /** 한 번이라도 적립된 전체 금액. 사용해도 줄지 않는다 */
+  totalCashback: number;
+  /** 지금까지 사용한 금액의 합 */
+  usedCashback: number;
   receipts: ReceiptRecord[];
   stamps: StampRecord[];
   claimedRewards: string[];
@@ -42,7 +47,9 @@ interface GuestState {
 function createGuestState(): GuestState {
   return {
     profile: { ...DEFAULT_PROFILE, nickname: '게스트' },
-    cash: 0,
+    currentCashback: 0,
+    totalCashback: 0,
+    usedCashback: 0,
     receipts: [],
     stamps: [],
     claimedRewards: [],
@@ -82,12 +89,15 @@ function useAppState() {
   const failNextRef = useLatest(failNextVerify);
 
   const profile = isGuest ? guestState.profile : userDoc;
-  const cash = isGuest ? guestState.cash : userDoc.cash;
+  const currentCashback = isGuest ? guestState.currentCashback : userDoc.currentCashback;
+  const totalCashback = isGuest ? guestState.totalCashback : userDoc.totalCashback;
+  const usedCashback = isGuest ? guestState.usedCashback : userDoc.usedCashback;
   const receipts = isGuest ? guestState.receipts : firestoreReceipts;
   const stamps = isGuest ? guestState.stamps : stampsState.stamps;
   const claimedRewards = isGuest ? guestState.claimedRewards : userDoc.claimedRewards;
   const notificationPrefs = isGuest ? guestState.notificationPrefs : userDoc.notificationPrefs;
-  const freshStampId = isGuest ? null : stampsState.freshStampId;
+  // freshStampId는 Firestore가 아니라 useStamps 안의 로컬 state라서 게스트도 그대로 쓸 수 있다
+  const { freshStampId } = stampsState;
 
   const claimedRef = useLatest(claimedRewards);
   const stampCountRef = useLatest(stamps.length);
@@ -134,9 +144,11 @@ function useAppState() {
         setGuestState((prev) => ({
           ...prev,
           receipts: [record, ...prev.receipts],
-          cash: prev.cash + cashback,
+          currentCashback: prev.currentCashback + cashback,
+          totalCashback: prev.totalCashback + cashback,
           stamps: nextStamps,
         }));
+        if (target) setFreshStampId(target.id);
         return { ok: true, receipt: record, stamp: target, unlockedRewardIds };
       }
 
@@ -157,7 +169,16 @@ function useAppState() {
         return { ok: false, message: '인증 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.' };
       }
     },
-    [awardStampFirestore, commitReceiptFirestore, failNextRef, guestStateRef, isGuest, uid, userDoc.soldierVerified],
+    [
+      awardStampFirestore,
+      commitReceiptFirestore,
+      failNextRef,
+      guestStateRef,
+      isGuest,
+      setFreshStampId,
+      uid,
+      userDoc.soldierVerified,
+    ],
   );
 
   const claimReward = useCallback(
@@ -173,7 +194,8 @@ function useAppState() {
         setGuestState((prev) => ({
           ...prev,
           claimedRewards: [...prev.claimedRewards, rewardId],
-          cash: prev.cash + (reward.cash > 0 ? reward.cash : 0),
+          currentCashback: prev.currentCashback + (reward.cash > 0 ? reward.cash : 0),
+          totalCashback: prev.totalCashback + (reward.cash > 0 ? reward.cash : 0),
         }));
         return true;
       }
@@ -183,7 +205,7 @@ function useAppState() {
       if (stampCountRef.current < reward.threshold) return false;
       await updateUserDocFirestore({
         claimedRewards: arrayUnion(rewardId),
-        ...(reward.cash > 0 ? { cash: increment(reward.cash) } : {}),
+        ...(reward.cash > 0 ? { currentCashback: increment(reward.cash), totalCashback: increment(reward.cash) } : {}),
       });
       return true;
     },
@@ -229,10 +251,14 @@ function useAppState() {
   const addCashDemo = useCallback(
     (amount: number) => {
       if (isGuest) {
-        setGuestState((prev) => ({ ...prev, cash: prev.cash + amount }));
+        setGuestState((prev) => ({
+          ...prev,
+          currentCashback: prev.currentCashback + amount,
+          totalCashback: prev.totalCashback + amount,
+        }));
         return Promise.resolve();
       }
-      return updateUserDocFirestore({ cash: increment(amount) });
+      return updateUserDocFirestore({ currentCashback: increment(amount), totalCashback: increment(amount) });
     },
     [isGuest, updateUserDocFirestore],
   );
@@ -241,15 +267,19 @@ function useAppState() {
     async (price: number): Promise<boolean> => {
       if (!uid) return false;
       if (isGuest) {
-        if (guestStateRef.current.cash < price) return false;
-        setGuestState((prev) => ({ ...prev, cash: prev.cash - price }));
+        if (guestStateRef.current.currentCashback < price) return false;
+        setGuestState((prev) => ({
+          ...prev,
+          currentCashback: prev.currentCashback - price,
+          usedCashback: prev.usedCashback + price,
+        }));
         return true;
       }
-      if (userDoc.cash < price) return false;
-      await updateUserDocFirestore({ cash: increment(-price) });
+      if (userDoc.currentCashback < price) return false;
+      await updateUserDocFirestore({ currentCashback: increment(-price), usedCashback: increment(price) });
       return true;
     },
-    [guestStateRef, isGuest, uid, updateUserDocFirestore, userDoc.cash],
+    [guestStateRef, isGuest, uid, updateUserDocFirestore, userDoc.currentCashback],
   );
 
   const toggleStamp = useCallback(
@@ -278,13 +308,9 @@ function useAppState() {
     await stampsState.clearStamps();
   }, [isGuest, stampsState]);
 
-  const clearFreshStamp = useCallback(() => {
-    if (isGuest) return;
-    stampsState.clearFreshStamp();
-  }, [isGuest, stampsState]);
+  const { clearFreshStamp } = stampsState;
 
   const derived = {
-    cumulativeCashback: isGuest ? guestState.cash : userDoc.cumulativeCashback,
     currentTier: getTier(receipts.length),
     nextTier: getNextTier(receipts.length),
     effectiveRate: getEffectiveRate(getTier(receipts.length).rate, profile.soldierVerified),
@@ -294,7 +320,9 @@ function useAppState() {
     uid,
     isGuest,
     profile,
-    cash,
+    currentCashback,
+    totalCashback,
+    usedCashback,
     receipts,
     stamps,
     freshStampId,

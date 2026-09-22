@@ -1,10 +1,10 @@
-import { Banknote, Camera, Images, LogIn, RotateCcw, ScanLine } from 'lucide-react';
+import { Banknote, Camera, ChevronRight, ImagePlus, LogIn, RotateCcw, ScanLine, Users } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
+import { Card, CardButton } from '../components/ui/Card';
 import { Spinner } from '../components/ui/Spinner';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
@@ -109,6 +109,17 @@ export function ReceiptPage() {
         </Card>
       )}
 
+      <CardButton className="banner" onClick={() => push({ name: 'community' })}>
+        <span className="banner__icon">
+          <Users size={20} aria-hidden="true" />
+        </span>
+        <span className="banner__text">
+          <strong>화천 커뮤니티</strong>
+          <span className="sm">자전거 코스 후기부터 가게 소식까지</span>
+        </span>
+        <ChevronRight size={20} aria-hidden="true" />
+      </CardButton>
+
       <CashbackSummary />
 
       <section aria-labelledby="verify-title">
@@ -118,21 +129,6 @@ export function ReceiptPage() {
         <p className="sub">
           {previewUrl ? '내용이 잘 보이는지 확인하고 인증해 주세요.' : '영수증을 촬영하거나 앨범에서 가져오세요.'}
         </p>
-
-        <ReceiptPaper imageUrl={previewUrl} loading={loading} />
-
-        {pickError ? <ErrorState title="사진을 사용할 수 없어요" description={pickError} /> : null}
-        {status === 'error' && errorMessage ? (
-          <ErrorState
-            title="인증에 실패했어요"
-            description={errorMessage}
-            action={
-              <Button variant="line" onClick={handleVerifyClick}>
-                다시 시도
-              </Button>
-            }
-          />
-        ) : null}
 
         <input
           ref={cameraInput}
@@ -154,7 +150,38 @@ export function ReceiptPage() {
           onChange={handleFile}
         />
 
+        {previewUrl ? null : (
+          <div className="btn-pair">
+            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={handleCameraOpen} disabled={processing}>
+              촬영하기
+            </Button>
+            <Button
+              variant="line"
+              icon={<ImagePlus size={18} aria-hidden="true" />}
+              onClick={() => albumInput.current?.click()}
+              disabled={processing}
+            >
+              앨범에서 가져오기
+            </Button>
+          </div>
+        )}
+
         {processing ? <Spinner label="사진을 준비하는 중…" /> : null}
+
+        <ReceiptPaper imageUrl={previewUrl} loading={loading} />
+
+        {pickError ? <ErrorState title="사진을 사용할 수 없어요" description={pickError} /> : null}
+        {status === 'error' && errorMessage ? (
+          <ErrorState
+            title="인증에 실패했어요"
+            description={errorMessage}
+            action={
+              <Button variant="line" onClick={handleVerifyClick}>
+                다시 시도
+              </Button>
+            }
+          />
+        ) : null}
 
         {previewUrl ? (
           <div className="btn-pair">
@@ -165,21 +192,7 @@ export function ReceiptPage() {
               {loading ? '인증 중…' : loggedIn ? '인증하기' : '로그인하고 인증하기'}
             </Button>
           </div>
-        ) : (
-          <div className="btn-pair">
-            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={handleCameraOpen} disabled={processing}>
-              촬영하기
-            </Button>
-            <Button
-              variant="line"
-              icon={<Images size={18} aria-hidden="true" />}
-              onClick={() => albumInput.current?.click()}
-              disabled={processing}
-            >
-              앨범에서 가져오기
-            </Button>
-          </div>
-        )}
+        ) : null}
 
         <Button
           variant="ghost"

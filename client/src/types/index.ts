@@ -1,4 +1,4 @@
-export type TabId = 'receipt' | 'map' | 'community' | 'stamp' | 'my';
+export type TabId = 'receipt' | 'map' | 'shop' | 'stamp' | 'my';
 export type Role = 'traveler' | 'owner';
 export type Board = 'traveler' | 'owner';
 

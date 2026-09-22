@@ -44,7 +44,7 @@ export function useReceipts(uid: string | null) {
         const ref = await addDoc(collection(db, 'receipts'), { uid, ...input, rate, cashback, createdAt });
         await setDoc(
           doc(db, 'users', uid),
-          { cash: increment(cashback), cumulativeCashback: increment(cashback) },
+          { currentCashback: increment(cashback), totalCashback: increment(cashback) },
           { merge: true },
         );
         return { id: ref.id, ...input, rate, cashback, createdAt };
