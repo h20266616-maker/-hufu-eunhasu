@@ -21,23 +21,27 @@ export function useMyComments(uid: string | null) {
       return undefined;
     }
     const q = query(collectionGroup(db, 'comments'), where('authorUid', '==', uid), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setComments(
-        snap.docs.map((item) => {
-          const data = item.data() as CommentDoc;
-          const postId = item.ref.parent.parent?.id ?? '';
-          return {
-            id: item.id,
-            postId,
-            author: data.author,
-            authorUid: data.authorUid,
-            body: data.body,
-            createdAt: data.createdAt,
-            mine: true,
-          };
-        }),
-      );
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setComments(
+          snap.docs.map((item) => {
+            const data = item.data() as CommentDoc;
+            const postId = item.ref.parent.parent?.id ?? '';
+            return {
+              id: item.id,
+              postId,
+              author: data.author,
+              authorUid: data.authorUid,
+              body: data.body,
+              createdAt: data.createdAt,
+              mine: true,
+            };
+          }),
+        );
+      },
+      (error) => console.error('[useMyComments] 내 댓글을 불러오지 못했어요', error),
+    );
     return unsubscribe;
   }, [uid]);
 

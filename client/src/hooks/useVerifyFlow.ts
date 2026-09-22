@@ -38,7 +38,8 @@ export function useVerifyFlow() {
         }
         setStatus('error');
         setErrorMessage(outcome.message);
-      } catch {
+      } catch (error) {
+        console.error('[useVerifyFlow] 인증 요청 중 예상치 못한 오류가 발생했어요', error);
         if (!mounted.current) return;
         setStatus('error');
         setErrorMessage(UNKNOWN_ERROR_MESSAGE);

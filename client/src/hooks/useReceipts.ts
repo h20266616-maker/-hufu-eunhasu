@@ -23,9 +23,13 @@ export function useReceipts(uid: string | null) {
       return undefined;
     }
     const q = query(collection(db, 'receipts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setReceipts(snap.docs.map((item) => ({ id: item.id, ...(item.data() as Omit<ReceiptRecord, 'id'>) })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setReceipts(snap.docs.map((item) => ({ id: item.id, ...(item.data() as Omit<ReceiptRecord, 'id'>) })));
+      },
+      (error) => console.error('[useReceipts] 영수증 목록을 불러오지 못했어요', error),
+    );
     return unsubscribe;
   }, [uid]);
 
@@ -36,13 +40,18 @@ export function useReceipts(uid: string | null) {
       const rate = getEffectiveRate(tier.rate, isSoldier);
       const cashback = calcCashback(input.amount, rate);
       const createdAt = new Date().toISOString();
-      const ref = await addDoc(collection(db, 'receipts'), { uid, ...input, rate, cashback, createdAt });
-      await setDoc(
-        doc(db, 'users', uid),
-        { cash: increment(cashback), cumulativeCashback: increment(cashback) },
-        { merge: true },
-      );
-      return { id: ref.id, ...input, rate, cashback, createdAt };
+      try {
+        const ref = await addDoc(collection(db, 'receipts'), { uid, ...input, rate, cashback, createdAt });
+        await setDoc(
+          doc(db, 'users', uid),
+          { cash: increment(cashback), cumulativeCashback: increment(cashback) },
+          { merge: true },
+        );
+        return { id: ref.id, ...input, rate, cashback, createdAt };
+      } catch (error) {
+        console.error('[useReceipts] 영수증 저장에 실패했어요', error);
+        throw error;
+      }
     },
     [receiptsRef, uid],
   );

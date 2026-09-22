@@ -1,5 +1,6 @@
-import { Lock, LogIn } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { useId, useState, type SubmitEvent } from 'react';
+import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Chip } from '../components/ui/Chip';
@@ -16,8 +17,8 @@ const MAX_BODY_LENGTH = 500;
 const MIN_BODY_LENGTH = 5;
 
 export function PostWritePage({ board }: { board: Board }) {
-  const { uid, profile, addPost } = useApp();
-  const { push, back } = useNav();
+  const { uid, isGuest, profile, addPost } = useApp();
+  const { back } = useNav();
   const showToast = useToast();
   const categories = BOARD_CATEGORIES[board];
   const [category, setCategory] = useState<string>(categories[0] ?? '');
@@ -27,16 +28,11 @@ export function PostWritePage({ board }: { board: Board }) {
   const [submitting, setSubmitting] = useState(false);
   const bodyId = useId();
 
-  if (!uid) {
+  if (!uid || isGuest) {
     return (
       <div className="page">
         <ScreenHeader title="글쓰기" />
-        <ErrorState
-          icon={LogIn}
-          title="로그인이 필요해요"
-          description="글을 쓰려면 먼저 로그인해 주세요."
-          action={<Button onClick={() => push({ name: 'login' })}>로그인하기</Button>}
-        />
+        <AccountRequiredNotice isGuest={isGuest} description="글쓰기는 실제 계정으로 로그인한 뒤에 이용할 수 있어요." />
       </div>
     );
   }

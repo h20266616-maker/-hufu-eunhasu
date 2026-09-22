@@ -45,28 +45,32 @@ export function useCommunity(uid: string | null) {
       return undefined;
     }
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setPosts(
-        snap.docs.map((item) => {
-          const data = item.data() as PostDoc;
-          const likedBy = data.likedBy ?? [];
-          return {
-            id: item.id,
-            board: data.board,
-            category: data.category,
-            title: data.title,
-            body: data.body,
-            author: data.author,
-            authorUid: data.authorUid,
-            createdAt: data.createdAt,
-            likes: likedBy.length,
-            liked: uid !== null && likedBy.includes(uid),
-            commentCount: data.commentCount ?? 0,
-            mine: uid !== null && data.authorUid === uid,
-          };
-        }),
-      );
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setPosts(
+          snap.docs.map((item) => {
+            const data = item.data() as PostDoc;
+            const likedBy = data.likedBy ?? [];
+            return {
+              id: item.id,
+              board: data.board,
+              category: data.category,
+              title: data.title,
+              body: data.body,
+              author: data.author,
+              authorUid: data.authorUid,
+              createdAt: data.createdAt,
+              likes: likedBy.length,
+              liked: uid !== null && likedBy.includes(uid),
+              commentCount: data.commentCount ?? 0,
+              mine: uid !== null && data.authorUid === uid,
+            };
+          }),
+        );
+      },
+      (error) => console.error('[useCommunity] 게시글 목록을 불러오지 못했어요', error),
+    );
     return unsubscribe;
   }, [uid]);
 
@@ -75,9 +79,14 @@ export function useCommunity(uid: string | null) {
       if (!uid || !db) return;
       const post = postsRef.current.find((item) => item.id === postId);
       if (!post) return;
-      await updateDoc(doc(db, 'posts', postId), {
-        likedBy: post.liked ? arrayRemove(uid) : arrayUnion(uid),
-      });
+      try {
+        await updateDoc(doc(db, 'posts', postId), {
+          likedBy: post.liked ? arrayRemove(uid) : arrayUnion(uid),
+        });
+      } catch (error) {
+        console.error('[useCommunity] 좋아요 처리에 실패했어요', error);
+        throw error;
+      }
     },
     [postsRef, uid],
   );
@@ -85,14 +94,19 @@ export function useCommunity(uid: string | null) {
   const addPost = useCallback(
     async (input: NewPostInput): Promise<string> => {
       if (!uid || !db) throw new Error('로그인이 필요해요');
-      const ref = await addDoc(collection(db, 'posts'), {
-        ...input,
-        authorUid: uid,
-        createdAt: Date.now(),
-        likedBy: [],
-        commentCount: 0,
-      });
-      return ref.id;
+      try {
+        const ref = await addDoc(collection(db, 'posts'), {
+          ...input,
+          authorUid: uid,
+          createdAt: Date.now(),
+          likedBy: [],
+          commentCount: 0,
+        });
+        return ref.id;
+      } catch (error) {
+        console.error('[useCommunity] 글 작성에 실패했어요', error);
+        throw error;
+      }
     },
     [uid],
   );

@@ -54,3 +54,11 @@ export function wait(ms: number): Promise<void> {
 export function randomBetween(min: number, max: number): number {
   return Math.round(min + Math.random() * (max - min));
 }
+
+/** 숫자만 남기고 010-XXXX-XXXX 형태로 입력 중인 값을 즉시 포맷한다 */
+export function formatPhoneInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 11);
+  if (digits.length < 4) return digits;
+  if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}

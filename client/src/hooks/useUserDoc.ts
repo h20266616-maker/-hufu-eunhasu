@@ -40,20 +40,27 @@ export function useUserDoc(uid: string | null, fallback: { nickname?: string; em
     }
     setLoaded(false);
     const ref = doc(db, 'users', uid);
-    const unsubscribe = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        setData({ ...DEFAULT_USER_DOC, ...(snap.data() as Partial<UserDoc>) });
-      } else {
-        const initial: UserDoc = {
-          ...DEFAULT_USER_DOC,
-          nickname: fallback.nickname || DEFAULT_USER_DOC.nickname,
-          email: fallback.email || DEFAULT_USER_DOC.email,
-        };
-        void setDoc(ref, initial);
-        setData(initial);
-      }
-      setLoaded(true);
-    });
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        if (snap.exists()) {
+          setData({ ...DEFAULT_USER_DOC, ...(snap.data() as Partial<UserDoc>) });
+        } else {
+          const initial: UserDoc = {
+            ...DEFAULT_USER_DOC,
+            nickname: fallback.nickname || DEFAULT_USER_DOC.nickname,
+            email: fallback.email || DEFAULT_USER_DOC.email,
+          };
+          void setDoc(ref, initial);
+          setData(initial);
+        }
+        setLoaded(true);
+      },
+      (error) => {
+        console.error('[useUserDoc] 사용자 정보를 불러오지 못했어요', error);
+        setLoaded(true);
+      },
+    );
     return unsubscribe;
     // fallback은 로그인 순간의 auth 정보라 uid가 바뀔 때만 다시 평가하면 된다
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,7 +69,12 @@ export function useUserDoc(uid: string | null, fallback: { nickname?: string; em
   const update = useCallback(
     async (patch: Record<string, unknown>) => {
       if (!uid || !db) return;
-      await setDoc(doc(db, 'users', uid), patch, { merge: true });
+      try {
+        await setDoc(doc(db, 'users', uid), patch, { merge: true });
+      } catch (error) {
+        console.error('[useUserDoc] 사용자 정보 저장에 실패했어요', error);
+        throw error;
+      }
     },
     [uid],
   );

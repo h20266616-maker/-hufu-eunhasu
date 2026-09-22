@@ -1,6 +1,7 @@
 import {
   Award,
   Bell,
+  Compass,
   LogIn,
   LogOut,
   MessagesSquare,
@@ -31,7 +32,7 @@ const DEMO_TAP_COUNT = 5;
 const DEMO_TAP_WINDOW_MS = 1200;
 
 export function MyPage() {
-  const { uid, profile, cumulativeCashback, stamps, claimedRewards } = useApp();
+  const { uid, isGuest, profile, cumulativeCashback, stamps, claimedRewards } = useApp();
   const { user, signOutUser, deleteAccountMock } = useAuth();
   const { push, switchTab } = useNav();
   const showToast = useToast();
@@ -39,6 +40,7 @@ export function MyPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const tapState = useRef({ count: 0, last: 0 });
   const loggedIn = uid !== null;
+  const isRealAccount = loggedIn && !isGuest;
 
   const handleVersionTap = () => {
     const now = Date.now();
@@ -66,6 +68,22 @@ export function MyPage() {
     <div className="page">
       <ScreenHeader title="MY" showBack={false} />
 
+      {isGuest ? (
+        <Card className="guest-banner">
+          <div className="row">
+            <div>
+              <span className="guest-banner__tag">
+                <Compass size={14} aria-hidden="true" /> 게스트로 체험 중입니다
+              </span>
+              <p className="sm">지금 쌓은 캐시·스탬프는 회원가입해야 계속 가져갈 수 있어요.</p>
+            </div>
+          </div>
+          <Button icon={<LogIn size={16} aria-hidden="true" />} onClick={() => push({ name: 'login' })}>
+            로그인 / 회원가입
+          </Button>
+        </Card>
+      ) : null}
+
       {loggedIn ? (
         <Card className="profile">
           <div className="profile__head">
@@ -75,7 +93,7 @@ export function MyPage() {
             <div>
               <strong className="profile__name">{profile.nickname}</strong>
               <div className="profile__badges">
-                <Tag>{profile.role === 'owner' ? '사장님' : '여행자'}</Tag>
+                <Tag>{isGuest ? '게스트' : profile.role === 'owner' ? '사장님' : '여행자'}</Tag>
                 {profile.soldierVerified ? (
                   <Tag>
                     <Shield size={12} aria-hidden="true" /> 군인 인증
@@ -128,7 +146,7 @@ export function MyPage() {
         ) : null}
       </nav>
 
-      {loggedIn ? (
+      {isRealAccount ? (
         <nav className="menu" aria-label="계정 관리">
           <MenuRow icon={LogOut} label="로그아웃" onClick={() => void handleSignOut()} />
           <MenuRow icon={UserX} label="회원탈퇴" onClick={() => setConfirmingDelete(true)} />

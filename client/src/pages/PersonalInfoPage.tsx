@@ -1,10 +1,10 @@
 import { Pencil, Shield } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
+import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Field } from '../components/ui/Field';
-import { ErrorState } from '../components/ui/StateMessage';
 import { SegmentControl } from '../components/ui/SegmentControl';
 import { Tag } from '../components/ui/Tag';
 import { Toggle } from '../components/ui/Toggle';
@@ -44,18 +44,18 @@ function validate(draft: Draft): DraftErrors {
 }
 
 export function PersonalInfoPage() {
-  const { uid, profile, updateProfile } = useApp();
+  const { uid, isGuest, profile, updateProfile } = useApp();
   const { push } = useNav();
   const showToast = useToast();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile));
   const [errors, setErrors] = useState<DraftErrors>({});
 
-  if (!uid) {
+  if (!uid || isGuest) {
     return (
       <div className="page">
         <ScreenHeader title="개인정보 관리" />
-        <ErrorState title="로그인이 필요해요" description="개인정보 관리는 로그인 후 이용할 수 있어요." />
+        <AccountRequiredNotice isGuest={isGuest} description="개인정보 관리는 실제 계정으로 로그인한 뒤에 이용할 수 있어요." />
       </div>
     );
   }

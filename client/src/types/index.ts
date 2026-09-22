@@ -53,8 +53,6 @@ export interface MapPlace {
   name: string;
   description: string;
   icon: IconKey;
-  x: number;
-  y: number;
   lat: number;
   lng: number;
   stampId?: string;
@@ -63,12 +61,20 @@ export interface MapPlace {
 export interface BikeStation {
   id: string;
   name: string;
-  x: number;
-  y: number;
   lat: number;
   lng: number;
   bikes: number;
   distance: string;
+}
+
+export interface MapMarker {
+  id: string;
+  kind: 'eat' | 'see' | 'bike';
+  icon: IconKey;
+  label: string;
+  lat: number;
+  lng: number;
+  badge?: number;
 }
 
 export interface RideState {

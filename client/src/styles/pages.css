@@ -457,33 +457,16 @@
   font-weight: 800;
 }
 
-/* 카카오맵 CustomOverlayMap 안에서는 좌표 배치를 지도 SDK가 맡으므로 absolute/transform을 뺀다 */
+/* Leaflet divIcon 안에서는 좌표 배치를 지도 라이브러리가 맡으므로 absolute/transform을 뺀다 */
 .pin--overlay {
   position: static;
   transform: none;
 }
 
-.map--message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  text-align: center;
-  color: var(--sub-strong);
-  font-size: 14px;
-}
-
-.map-notice {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--warn);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
+/* Leaflet 기본 마커 그림자·div 래퍼가 우리 핀 디자인과 겹치지 않도록 정리한다 */
+.leaflet-pin {
+  background: none !important;
+  border: none !important;
 }
 
 .ride-timer {
@@ -537,6 +520,24 @@
 }
 
 /* ---------- MY ---------- */
+.guest-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-color: var(--brand);
+  background: var(--warn);
+}
+
+.guest-banner__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--brand);
+}
+
 .profile {
   display: flex;
   flex-direction: column;

@@ -22,10 +22,14 @@ export function useStamps(uid: string | null) {
       return undefined;
     }
     const ref = doc(db, 'stamps', uid);
-    const unsubscribe = onSnapshot(ref, (snap) => {
-      const records = (snap.data()?.records ?? {}) as Record<string, string>;
-      setStamps(Object.entries(records).map(([spotId, earnedAt]) => ({ spotId, earnedAt })));
-    });
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        const records = (snap.data()?.records ?? {}) as Record<string, string>;
+        setStamps(Object.entries(records).map(([spotId, earnedAt]) => ({ spotId, earnedAt })));
+      },
+      (error) => console.error('[useStamps] 스탬프를 불러오지 못했어요', error),
+    );
     return unsubscribe;
   }, [uid]);
 
@@ -40,7 +44,12 @@ export function useStamps(uid: string | null) {
 
       const before = stampsRef.current.length;
       const after = before + 1;
-      await setDoc(doc(db, 'stamps', uid), { records: { [target.id]: new Date().toISOString() } }, { merge: true });
+      try {
+        await setDoc(doc(db, 'stamps', uid), { records: { [target.id]: new Date().toISOString() } }, { merge: true });
+      } catch (error) {
+        console.error('[useStamps] 스탬프 적립에 실패했어요', error);
+        throw error;
+      }
       setFreshStampId(target.id);
 
       const unlockedRewardIds = STAMP_REWARDS.filter(
@@ -75,5 +84,5 @@ export function useStamps(uid: string | null) {
 
   const clearFreshStamp = useCallback(() => setFreshStampId(null), []);
 
-  return { stamps, freshStampId, awardStamp, toggleStamp, clearStamps, clearFreshStamp };
+  return { stamps, freshStampId, setFreshStampId, awardStamp, toggleStamp, clearStamps, clearFreshStamp };
 }

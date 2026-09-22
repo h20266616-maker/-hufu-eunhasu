@@ -1,8 +1,6 @@
-import { MapPinOff } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { BottomSheet } from '../components/BottomSheet';
-import { KakaoMap } from '../components/KakaoMap';
-import { MapCanvas, type MapMarker } from '../components/MapCanvas';
+import { LeafletMap } from '../components/LeafletMap';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Chip } from '../components/ui/Chip';
@@ -11,7 +9,7 @@ import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
 import { BIKE_STATIONS, MAP_PLACES } from '../data';
 import { useElapsedSeconds } from '../hooks/useElapsedSeconds';
-import type { MapFilter } from '../types';
+import type { MapFilter, MapMarker } from '../types';
 import { formatElapsed } from '../utils/format';
 
 const FILTERS: readonly { value: MapFilter; label: string }[] = [
@@ -20,8 +18,6 @@ const FILTERS: readonly { value: MapFilter; label: string }[] = [
   { value: 'see', label: '볼 곳' },
   { value: 'bike', label: '자전거' },
 ];
-
-const KAKAO_MAP_KEY = import.meta.env.VITE_KAKAO_MAP_KEY;
 
 export function MapPage() {
   const { ride, bikeStock, startRide, endRide } = useApp();
@@ -33,16 +29,7 @@ export function MapPage() {
 
   const markers = useMemo<MapMarker[]>(() => {
     const places: MapMarker[] = MAP_PLACES.filter((place) => filter === 'all' || place.kind === filter).map(
-      (place) => ({
-        id: place.id,
-        kind: place.kind,
-        icon: place.icon,
-        label: place.name,
-        x: place.x,
-        y: place.y,
-        lat: place.lat,
-        lng: place.lng,
-      }),
+      (place) => ({ id: place.id, kind: place.kind, icon: place.icon, label: place.name, lat: place.lat, lng: place.lng }),
     );
     const stations: MapMarker[] =
       filter === 'all' || filter === 'bike'
@@ -51,8 +38,6 @@ export function MapPage() {
             kind: 'bike' as const,
             icon: 'bike' as const,
             label: `${station.name} 대여소`,
-            x: station.x,
-            y: station.y,
             lat: station.lat,
             lng: station.lng,
             badge: bikeStock[station.id] ?? 0,
@@ -78,13 +63,6 @@ export function MapPage() {
     <div className="page page--map">
       <ScreenHeader title="지도·자전거" showBack={false} />
 
-      {KAKAO_MAP_KEY ? null : (
-        <div className="map-notice" role="note">
-          <MapPinOff size={16} aria-hidden="true" />
-          카카오맵 키를 등록해주세요. 지금은 예시 지도로 보여드려요.
-        </div>
-      )}
-
       <div className="chips" role="group" aria-label="지도 필터">
         {FILTERS.map((item) => (
           <Chip key={item.value} selected={filter === item.value} onClick={() => setFilter(item.value)}>
@@ -93,11 +71,7 @@ export function MapPage() {
         ))}
       </div>
 
-      {KAKAO_MAP_KEY ? (
-        <KakaoMap appKey={KAKAO_MAP_KEY} markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
-      ) : (
-        <MapCanvas markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
-      )}
+      <LeafletMap markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
 
       <BottomSheet open label="지도 상세 정보">
         {ride ? (

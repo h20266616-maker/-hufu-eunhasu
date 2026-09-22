@@ -1,5 +1,6 @@
 import { MessageSquare } from 'lucide-react';
 import { useMemo } from 'react';
+import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { PostCard } from '../components/PostCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
@@ -11,13 +12,23 @@ import { useMyComments } from '../hooks/useMyComments';
 import { formatRelative } from '../utils/format';
 
 export function MyPostsPage() {
-  const { uid, posts } = useApp();
+  const { uid, isGuest, posts } = useApp();
   const { push } = useNav();
-  const myComments = useMyComments(uid);
+  const isRealAccount = uid !== null && !isGuest;
+  const myComments = useMyComments(isRealAccount ? uid : null);
 
   const myPosts = useMemo(() => posts.filter((post) => post.mine).sort((a, b) => b.createdAt - a.createdAt), [posts]);
 
   const openPost = (postId: string) => push({ name: 'postDetail', postId });
+
+  if (!isRealAccount) {
+    return (
+      <div className="page">
+        <ScreenHeader title="내 글·댓글" />
+        <AccountRequiredNotice isGuest={isGuest} description="내 글·댓글은 실제 계정으로 로그인한 뒤에 볼 수 있어요." />
+      </div>
+    );
+  }
 
   return (
     <div className="page">

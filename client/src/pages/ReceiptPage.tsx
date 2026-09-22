@@ -5,6 +5,7 @@ import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Spinner } from '../components/ui/Spinner';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
@@ -12,6 +13,7 @@ import { useNav } from '../context/NavContext';
 import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
 import { isCameraSupported } from '../utils/camera';
+import { resizeImageFile } from '../utils/image';
 
 export function ReceiptPage() {
   const { uid } = useApp();
@@ -21,6 +23,7 @@ export function ReceiptPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const cameraInput = useRef<HTMLInputElement>(null);
   const albumInput = useRef<HTMLInputElement>(null);
   const loading = status === 'loading';
@@ -32,7 +35,7 @@ export function ReceiptPage() {
     [previewUrl],
   );
 
-  const acceptFile = (file: File) => {
+  const acceptFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setPickError('이미지 파일만 선택할 수 있어요.');
       return;
@@ -43,13 +46,23 @@ export function ReceiptPage() {
     }
     setPickError(null);
     reset();
-    setPreviewUrl(URL.createObjectURL(file));
+    setProcessing(true);
+    try {
+      // 고해상도 사진은 캔버스로 줄여서 미리보기·업로드가 느려지지 않게 한다
+      const resized = await resizeImageFile(file);
+      setPreviewUrl(URL.createObjectURL(resized));
+    } catch (error) {
+      console.error('[ReceiptPage] 이미지를 처리하지 못했어요', error);
+      setPickError('사진을 처리하지 못했어요. 다른 사진으로 다시 시도해 주세요.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = '';
-    if (file) acceptFile(file);
+    if (file) void acceptFile(file);
   };
 
   // getUserMedia를 못 쓰는 환경(http 접속 등)에서는 기기 기본 카메라 앱으로 대체한다
@@ -60,7 +73,12 @@ export function ReceiptPage() {
 
   const handleCameraCapture = (file: File) => {
     setCameraOpen(false);
-    acceptFile(file);
+    void acceptFile(file);
+  };
+
+  const handleCameraFallbackToAlbum = () => {
+    setCameraOpen(false);
+    albumInput.current?.click();
   };
 
   const handleRetake = () => {
@@ -136,6 +154,8 @@ export function ReceiptPage() {
           onChange={handleFile}
         />
 
+        {processing ? <Spinner label="사진을 준비하는 중…" /> : null}
+
         {previewUrl ? (
           <div className="btn-pair">
             <Button variant="line" icon={<RotateCcw size={18} aria-hidden="true" />} onClick={handleRetake} disabled={loading}>
@@ -147,10 +167,15 @@ export function ReceiptPage() {
           </div>
         ) : (
           <div className="btn-pair">
-            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={handleCameraOpen}>
+            <Button icon={<Camera size={18} aria-hidden="true" />} onClick={handleCameraOpen} disabled={processing}>
               촬영하기
             </Button>
-            <Button variant="line" icon={<Images size={18} aria-hidden="true" />} onClick={() => albumInput.current?.click()}>
+            <Button
+              variant="line"
+              icon={<Images size={18} aria-hidden="true" />}
+              onClick={() => albumInput.current?.click()}
+              disabled={processing}
+            >
               앨범에서 가져오기
             </Button>
           </div>
@@ -181,7 +206,13 @@ export function ReceiptPage() {
         ))}
       </section>
 
-      {cameraOpen ? <CameraCapture onCapture={handleCameraCapture} onClose={() => setCameraOpen(false)} /> : null}
+      {cameraOpen ? (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setCameraOpen(false)}
+          onFallbackToAlbum={handleCameraFallbackToAlbum}
+        />
+      ) : null}
     </div>
   );
 }

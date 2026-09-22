@@ -1,5 +1,6 @@
-import { Lock, LogIn, MessageSquare, PenLine } from 'lucide-react';
+import { Lock, MessageSquare, PenLine } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { PostCard } from '../components/PostCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
@@ -20,14 +21,14 @@ const BOARD_OPTIONS: readonly { value: Board; label: string }[] = [
 ];
 
 export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
-  const { uid, posts, profile } = useApp();
+  const { uid, isGuest, posts, profile } = useApp();
   const { push, replace } = useNav();
   const showToast = useToast();
   const [category, setCategory] = useState(ALL_CATEGORY);
 
-  const loggedIn = uid !== null;
+  const isRealAccount = uid !== null && !isGuest;
   const ownerLocked = board === 'owner' && profile.role !== 'owner';
-  const readOnly = !loggedIn || ownerLocked;
+  const readOnly = !isRealAccount || ownerLocked;
 
   const visiblePosts = useMemo(
     () =>
@@ -43,7 +44,7 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
   };
 
   const handleWrite = () => {
-    if (!loggedIn) {
+    if (!isRealAccount) {
       push({ name: 'login' });
       return;
     }
@@ -74,17 +75,11 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
 
       <SegmentControl options={BOARD_OPTIONS} value={board} onChange={handleBoardChange} ariaLabel="커뮤니티 종류" />
 
-      {!loggedIn ? (
-        <div className="notice" role="note">
-          <LogIn size={18} aria-hidden="true" />
-          <div>
-            <strong>로그인하면 글을 남길 수 있어요</strong>
-            <p className="sm">지금은 목록만 읽을 수 있어요.</p>
-            <Button variant="line" className="btn--small" onClick={() => push({ name: 'login' })}>
-              로그인하기
-            </Button>
-          </div>
-        </div>
+      {!isRealAccount ? (
+        <AccountRequiredNotice
+          isGuest={isGuest}
+          description={isGuest ? '커뮤니티 글쓰기는 회원가입 후 이용할 수 있어요. 목록은 지금도 볼 수 있어요.' : '지금은 목록만 읽을 수 있어요.'}
+        />
       ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />

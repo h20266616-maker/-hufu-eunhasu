@@ -1,5 +1,6 @@
-import { Heart, Lock, LogIn, MessageCircle, Send } from 'lucide-react';
+import { Heart, Lock, MessageCircle, Send } from 'lucide-react';
 import { useId, useState, type SubmitEvent } from 'react';
+import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/StateMessage';
@@ -14,7 +15,7 @@ import { formatRelative } from '../utils/format';
 const MAX_COMMENT_LENGTH = 200;
 
 export function PostDetailPage({ postId }: { postId: string }) {
-  const { uid, posts, profile, toggleLike } = useApp();
+  const { uid, isGuest, posts, profile, toggleLike } = useApp();
   const { comments, addComment } = usePostComments(postId, uid);
   const { push, back } = useNav();
   const showToast = useToast();
@@ -37,12 +38,12 @@ export function PostDetailPage({ postId }: { postId: string }) {
     );
   }
 
-  const loggedIn = uid !== null;
+  const isRealAccount = uid !== null && !isGuest;
   const ownerLocked = post.board === 'owner' && profile.role !== 'owner';
-  const readOnly = !loggedIn || ownerLocked;
+  const readOnly = !isRealAccount || ownerLocked;
 
   const handleLike = () => {
-    if (!loggedIn) {
+    if (!isRealAccount) {
       push({ name: 'login' });
       return;
     }
@@ -106,16 +107,11 @@ export function PostDetailPage({ postId }: { postId: string }) {
         )}
       </section>
 
-      {!loggedIn ? (
-        <div className="notice" role="note">
-          <LogIn size={18} aria-hidden="true" />
-          <div>
-            <strong>로그인하면 좋아요와 댓글을 남길 수 있어요</strong>
-            <Button variant="line" className="btn--small" onClick={() => push({ name: 'login' })}>
-              로그인하기
-            </Button>
-          </div>
-        </div>
+      {!isRealAccount ? (
+        <AccountRequiredNotice
+          isGuest={isGuest}
+          description={isGuest ? '좋아요와 댓글은 회원가입 후 남길 수 있어요.' : '로그인하면 좋아요와 댓글을 남길 수 있어요.'}
+        />
       ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />
