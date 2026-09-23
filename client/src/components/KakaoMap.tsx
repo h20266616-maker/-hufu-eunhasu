@@ -51,7 +51,7 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError }:
       <Map
         center={MAP_CENTER}
         level={5}
-        style={{ width: '100%', height: '100%' }}
+        style={{ position: 'absolute', inset: 0 }}
         onCreate={(map) => {
           mapRef.current = map;
           requestAnimationFrame(() => map.relayout());
