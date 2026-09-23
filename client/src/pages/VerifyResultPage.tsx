@@ -3,42 +3,29 @@ import { motion, useReducedMotion } from 'motion/react';
 import { AppIcon } from '../components/AppIcon';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
 import { STAMP_REWARDS, STAMP_SPOTS } from '../data';
+import type { ReceiptRecord } from '../types';
 import { getEffectiveRate } from '../utils/cashback';
 import { formatWon } from '../utils/format';
 
 interface VerifyResultPageProps {
-  receiptId: string;
+  receipt: ReceiptRecord;
   stampId: string | null;
   rewardIds: string[];
 }
 
-export function VerifyResultPage({ receiptId, stampId, rewardIds }: VerifyResultPageProps) {
+export function VerifyResultPage({ receipt, stampId, rewardIds }: VerifyResultPageProps) {
   const { receipts, currentCashback, currentTier, nextTier, profile } = useApp();
   const { switchTab } = useNav();
   const reduceMotion = useReducedMotion();
   const effectiveRate = getEffectiveRate(currentTier.rate, profile.soldierVerified);
   const nextEffectiveRate = nextTier ? getEffectiveRate(nextTier.rate, profile.soldierVerified) : null;
 
-  const receipt = receipts.find((item) => item.id === receiptId);
   const spot = STAMP_SPOTS.find((item) => item.id === stampId);
   const rewards = STAMP_REWARDS.filter((reward) => rewardIds.includes(reward.id));
-
-  if (!receipt) {
-    return (
-      <div className="page">
-        <ErrorState
-          title="인증 내역을 찾을 수 없어요"
-          description="처음 화면에서 다시 시도해 주세요."
-          action={<Button onClick={() => switchTab('receipt')}>영수증 인증으로 가기</Button>}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="page">

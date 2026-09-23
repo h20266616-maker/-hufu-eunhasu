@@ -129,7 +129,7 @@ export function MyPage() {
 
       <nav className="menu" aria-label="MY 메뉴">
         <MenuRow icon={ShoppingBag} label="특산물 상점" onClick={() => switchTab('shop')} />
-        <MenuRow icon={Users} label="커뮤니티" onClick={() => push({ name: 'community' })} />
+        <MenuRow icon={Users} label="커뮤니티" onClick={() => switchTab('community')} />
         {loggedIn ? (
           <>
             <MenuRow icon={Receipt} label="내 영수증 내역" onClick={() => push({ name: 'receiptHistory' })} />

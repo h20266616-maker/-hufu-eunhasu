@@ -1,10 +1,10 @@
-import { Banknote, Camera, ChevronRight, ImagePlus, LogIn, RotateCcw, ScanLine, Users } from 'lucide-react';
+import { Banknote, Camera, ImagePlus, LogIn, RotateCcw, ScanLine } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
-import { Card, CardButton } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { Spinner } from '../components/ui/Spinner';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
@@ -109,17 +109,6 @@ export function ReceiptPage() {
         </Card>
       )}
 
-      <CardButton className="banner" onClick={() => push({ name: 'community' })}>
-        <span className="banner__icon">
-          <Users size={20} aria-hidden="true" />
-        </span>
-        <span className="banner__text">
-          <strong>화천 커뮤니티</strong>
-          <span className="sm">자전거 코스 후기부터 가게 소식까지</span>
-        </span>
-        <ChevronRight size={20} aria-hidden="true" />
-      </CardButton>
-
       <CashbackSummary />
 
       <section aria-labelledby="verify-title">
@@ -166,6 +155,17 @@ export function ReceiptPage() {
           </div>
         )}
 
+        {previewUrl ? null : (
+          <Button
+            variant="ghost"
+            icon={<Banknote size={18} aria-hidden="true" />}
+            onClick={() => push({ name: 'cashQr' })}
+            disabled={loading}
+          >
+            현금만 받는 가게인가요?
+          </Button>
+        )}
+
         {processing ? <Spinner label="사진을 준비하는 중…" /> : null}
 
         <ReceiptPaper imageUrl={previewUrl} loading={loading} />
@@ -193,15 +193,6 @@ export function ReceiptPage() {
             </Button>
           </div>
         ) : null}
-
-        <Button
-          variant="ghost"
-          icon={<Banknote size={18} aria-hidden="true" />}
-          onClick={() => push({ name: 'cashQr' })}
-          disabled={loading}
-        >
-          현금만 받는 가게인가요?
-        </Button>
       </section>
 
       <section aria-labelledby="mission-title">

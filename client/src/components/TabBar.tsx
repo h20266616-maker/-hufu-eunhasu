@@ -1,4 +1,4 @@
-import { Map as MapIcon, Receipt, ShoppingBag, Stamp, User, type LucideIcon } from 'lucide-react';
+import { Map as MapIcon, MessageCircle, Receipt, ShoppingBag, Stamp, User, type LucideIcon } from 'lucide-react';
 import { useNav } from '../context/NavContext';
 import type { TabId } from '../types';
 
@@ -13,6 +13,7 @@ const TABS: readonly TabItem[] = [
   { id: 'map', label: '지도·자전거', Icon: MapIcon },
   { id: 'shop', label: '특산물 상점', Icon: ShoppingBag },
   { id: 'stamp', label: '스탬프', Icon: Stamp },
+  { id: 'community', label: '커뮤니티', Icon: MessageCircle },
   { id: 'my', label: 'MY', Icon: User },
 ];
 

@@ -30,7 +30,7 @@ export function useVerifyFlow() {
         if (outcome.ok) {
           replace({
             name: 'verifyResult',
-            receiptId: outcome.receipt.id,
+            receipt: outcome.receipt,
             stampId: outcome.stamp?.id ?? null,
             rewardIds: outcome.unlockedRewardIds,
           });

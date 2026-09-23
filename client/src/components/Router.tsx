@@ -29,7 +29,7 @@ export function Router({ route }: { route: Route }): ReactElement {
     case 'cashQr':
       return <CashQrPage />;
     case 'verifyResult':
-      return <VerifyResultPage receiptId={route.receiptId} stampId={route.stampId} rewardIds={route.rewardIds} />;
+      return <VerifyResultPage receipt={route.receipt} stampId={route.stampId} rewardIds={route.rewardIds} />;
     case 'map':
       return <MapPage />;
     case 'stamp':

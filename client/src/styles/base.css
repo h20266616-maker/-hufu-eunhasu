@@ -232,7 +232,7 @@ p {
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--card);
   border-top: 1px solid var(--line);
@@ -253,11 +253,11 @@ p {
   gap: 3px;
   min-width: 44px;
   min-height: var(--tabbar-h);
-  padding: 0 2px;
+  padding: 0 1px;
   border: 0;
   background: transparent;
   color: var(--sub-strong);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;

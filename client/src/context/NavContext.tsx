@@ -24,6 +24,7 @@ const TAB_ROOTS: Record<TabId, Route> = {
   map: { name: 'map' },
   shop: { name: 'shop' },
   stamp: { name: 'stamp' },
+  community: { name: 'community' },
   my: { name: 'my' },
 };
 

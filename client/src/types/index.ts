@@ -1,4 +1,4 @@
-export type TabId = 'receipt' | 'map' | 'shop' | 'stamp' | 'my';
+export type TabId = 'receipt' | 'map' | 'shop' | 'stamp' | 'community' | 'my';
 export type Role = 'traveler' | 'owner';
 export type Board = 'traveler' | 'owner';
 
@@ -195,7 +195,7 @@ export type Route =
   | { name: 'login' }
   | { name: 'receipt' }
   | { name: 'cashQr' }
-  | { name: 'verifyResult'; receiptId: string; stampId: string | null; rewardIds: string[] }
+  | { name: 'verifyResult'; receipt: ReceiptRecord; stampId: string | null; rewardIds: string[] }
   | { name: 'map' }
   | { name: 'stamp' }
   | { name: 'shop' }
