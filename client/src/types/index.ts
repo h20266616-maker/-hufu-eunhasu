@@ -44,7 +44,7 @@ export interface StampReward {
   soldierOnly?: boolean;
 }
 
-export type PlaceKind = 'eat' | 'see';
+export type PlaceKind = 'eat' | 'cafe' | 'see';
 export type MapFilter = 'all' | PlaceKind | 'bike';
 
 export interface MapPlace {
@@ -69,7 +69,7 @@ export interface BikeStation {
 
 export interface MapMarker {
   id: string;
-  kind: 'eat' | 'see' | 'bike';
+  kind: 'eat' | 'cafe' | 'see' | 'bike';
   icon: IconKey;
   label: string;
   lat: number;

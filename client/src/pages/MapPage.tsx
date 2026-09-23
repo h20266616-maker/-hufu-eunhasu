@@ -16,7 +16,8 @@ import { formatElapsed } from '../utils/format';
 
 const FILTERS: readonly { value: MapFilter; label: string }[] = [
   { value: 'all', label: '전체' },
-  { value: 'eat', label: '먹을 곳' },
+  { value: 'eat', label: '음식점' },
+  { value: 'cafe', label: '카페' },
   { value: 'see', label: '볼 곳' },
   { value: 'bike', label: '자전거' },
 ];

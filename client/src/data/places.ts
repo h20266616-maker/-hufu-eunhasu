@@ -61,7 +61,7 @@ export const MAP_PLACES: readonly MapPlace[] = [
   },
   {
     id: 'place-muraei',
-    kind: 'eat',
+    kind: 'cafe',
     name: '무래이',
     description: '간동면 카페',
     icon: 'drink',
@@ -70,7 +70,7 @@ export const MAP_PLACES: readonly MapPlace[] = [
   },
   {
     id: 'place-supe',
-    kind: 'eat',
+    kind: 'cafe',
     name: '수페',
     description: '간동면 오음리',
     icon: 'drink',
