@@ -10,6 +10,8 @@ interface LeafletMapProps {
   markers: readonly MapMarker[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** 이 값이 바뀔 때만(필터 전환 등) 지금 핀들이 다 보이도록 지도 범위를 다시 맞춘다 */
+  fitKey: string;
 }
 
 const DEFAULT_ZOOM = 15;
@@ -27,12 +29,14 @@ function buildIcon(marker: MapMarker, selected: boolean): L.DivIcon {
 }
 
 /** OpenStreetMap 무료 타일을 쓰는 지도. 키 발급·도메인 등록이 필요 없다 */
-export function LeafletMap({ markers, selectedId, onSelect }: LeafletMapProps) {
+export function LeafletMap({ markers, selectedId, onSelect, fitKey }: LeafletMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const latestMarkersRef = useRef(markers);
+  latestMarkersRef.current = markers;
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
@@ -75,6 +79,21 @@ export function LeafletMap({ markers, selectedId, onSelect }: LeafletMapProps) {
       }
     }
   }, [markers, selectedId]);
+
+  // 화천읍내에서 멀리 떨어진 핀도 필터 전환 시 화면 안에 들어오게 한다
+  useEffect(() => {
+    const map = mapRef.current;
+    const current = latestMarkersRef.current;
+    if (!map || current.length === 0) return;
+    const only = current.length === 1 ? current[0] : undefined;
+    if (only) {
+      map.setView([only.lat, only.lng], DEFAULT_ZOOM);
+      return;
+    }
+    const bounds = L.latLngBounds(current.map((item) => [item.lat, item.lng]));
+    map.fitBounds(bounds, { paddingTopLeft: [40, 56], paddingBottomRight: [40, 160] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey]);
 
   return <div ref={containerRef} className="map" role="group" aria-label="화천 지도" />;
 }

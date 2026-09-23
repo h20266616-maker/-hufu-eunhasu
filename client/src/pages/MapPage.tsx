@@ -93,9 +93,10 @@ export function MapPage() {
           selectedId={visibleSelectedId}
           onSelect={setSelectedId}
           onLoadError={() => setKakaoFailed(true)}
+          fitKey={filter}
         />
       ) : (
-        <LeafletMap markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} />
+        <LeafletMap markers={markers} selectedId={visibleSelectedId} onSelect={setSelectedId} fitKey={filter} />
       )}
 
       <BottomSheet open label="지도 상세 정보">
