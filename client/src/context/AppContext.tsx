@@ -20,7 +20,7 @@ import { getEffectiveRate, getNextTier, getTier } from '../utils/cashback';
 import { randomBetween, wait } from '../utils/format';
 
 export type VerifyInput =
-  | { source: 'photo' }
+  | { source: 'photo'; imageUrl?: string }
   | { source: 'cash'; shop: string; amount: number; category: ReceiptCategory; stampId: string };
 
 export type VerifyOutcome =
@@ -133,6 +133,7 @@ function useAppState() {
           rate,
           cashback,
           createdAt: new Date().toISOString(),
+          ...(input.source === 'photo' && input.imageUrl ? { imageUrl: input.imageUrl } : {}),
         };
         const target = pickStampSpot(before.stamps, resolved.stampId);
         const nextStamps = target ? [...before.stamps, { spotId: target.id, earnedAt: new Date().toISOString() }] : before.stamps;
@@ -154,7 +155,13 @@ function useAppState() {
 
       try {
         const receipt = await commitReceiptFirestore(
-          { shop: resolved.shop, amount: resolved.amount, category: resolved.category, source: input.source },
+          {
+            shop: resolved.shop,
+            amount: resolved.amount,
+            category: resolved.category,
+            source: input.source,
+            ...(input.source === 'photo' && input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+          },
           userDoc.soldierVerified,
         );
         const awarded = await awardStampFirestore(resolved.stampId);

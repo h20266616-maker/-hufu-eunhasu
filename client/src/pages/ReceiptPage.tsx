@@ -13,14 +13,15 @@ import { useNav } from '../context/NavContext';
 import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
 import { isCameraSupported } from '../utils/camera';
-import { resizeImageFile } from '../utils/image';
+import { createReceiptThumbnail, resizeImageFile } from '../utils/image';
 
 export function ReceiptPage() {
   const { uid } = useApp();
-  const { push } = useNav();
+  const { push, setCameraActive } = useNav();
   const { status, errorMessage, submit, reset } = useVerifyFlow();
   const loggedIn = uid !== null;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -34,6 +35,12 @@ export function ReceiptPage() {
     },
     [previewUrl],
   );
+
+  // 카메라 화면이 열려 있는 동안은 하단 탭바를 완전히 숨긴다
+  useEffect(() => {
+    setCameraActive(cameraOpen);
+    return () => setCameraActive(false);
+  }, [cameraOpen, setCameraActive]);
 
   const acceptFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -51,6 +58,13 @@ export function ReceiptPage() {
       // 고해상도 사진은 캔버스로 줄여서 미리보기·업로드가 느려지지 않게 한다
       const resized = await resizeImageFile(file);
       setPreviewUrl(URL.createObjectURL(resized));
+      try {
+        // 영수증 내역에 함께 저장할 작은 썸네일. 실패해도 인증 자체는 계속 진행한다
+        setImageDataUrl(await createReceiptThumbnail(file));
+      } catch (thumbnailError) {
+        console.error('[ReceiptPage] 썸네일을 만들지 못했어요', thumbnailError);
+        setImageDataUrl(null);
+      }
     } catch (error) {
       console.error('[ReceiptPage] 이미지를 처리하지 못했어요', error);
       setPickError('사진을 처리하지 못했어요. 다른 사진으로 다시 시도해 주세요.');
@@ -83,6 +97,7 @@ export function ReceiptPage() {
 
   const handleRetake = () => {
     setPreviewUrl(null);
+    setImageDataUrl(null);
     setPickError(null);
     reset();
   };
@@ -92,7 +107,7 @@ export function ReceiptPage() {
       push({ name: 'login' });
       return;
     }
-    void submit({ source: 'photo' });
+    void submit({ source: 'photo', imageUrl: imageDataUrl ?? undefined });
   };
 
   return (

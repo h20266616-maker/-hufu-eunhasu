@@ -10,6 +10,7 @@ export interface CommitReceiptInput {
   amount: number;
   category: ReceiptCategory;
   source: ReceiptSource;
+  imageUrl?: string;
 }
 
 /** receipts 컬렉션을 uid로 필터링해 구독하고, 인증 시 receipts 문서 생성 + users 문서 캐시 증액을 함께 한다 */

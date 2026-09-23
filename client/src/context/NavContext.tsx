@@ -17,6 +17,9 @@ interface NavContextValue {
   back: () => void;
   switchTab: (tab: TabId) => void;
   reset: (route: Route, tab: TabId) => void;
+  /** 카메라 촬영 화면처럼 전체 화면을 덮는 오버레이가 떠 있는 동안 탭바를 완전히 숨길 때 쓴다 */
+  cameraActive: boolean;
+  setCameraActive: (active: boolean) => void;
 }
 
 const TAB_ROOTS: Record<TabId, Route> = {
@@ -38,6 +41,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const [stack, setStack] = useState<NavEntry[]>(() => [{ key: 1, route: { name: 'landing' }, tab: 'receipt' }]);
+  const [cameraActive, setCameraActive] = useState(false);
 
   const push = useCallback(
     (route: Route) =>
@@ -79,8 +83,10 @@ export function NavProvider({ children }: { children: ReactNode }) {
       back,
       switchTab,
       reset,
+      cameraActive,
+      setCameraActive,
     };
-  }, [stack, push, replace, back, switchTab, reset]);
+  }, [stack, push, replace, back, switchTab, reset, cameraActive]);
 
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }

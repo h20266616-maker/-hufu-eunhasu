@@ -124,6 +124,8 @@ export interface ReceiptRecord {
   rate: number;
   cashback: number;
   createdAt: string;
+  /** 촬영한 영수증 사진 (작은 썸네일 data URL). 현금 QR 인증이나 이전 기록에는 없을 수 있다 */
+  imageUrl?: string;
 }
 
 export interface Profile {

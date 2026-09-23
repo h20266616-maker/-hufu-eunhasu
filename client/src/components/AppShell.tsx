@@ -5,9 +5,9 @@ import { Router } from './Router';
 import { TabBar } from './TabBar';
 
 export function AppShell() {
-  const { route, entryKey } = useNav();
+  const { route, entryKey, cameraActive } = useNav();
   const scrollRef = useRef<HTMLElement>(null);
-  const showTabBar = route.name !== 'landing' && route.name !== 'login';
+  const showTabBar = route.name !== 'landing' && route.name !== 'login' && !cameraActive;
   const tabBarHidden = useTabBarVisibility(scrollRef, entryKey);
 
   useEffect(() => {
