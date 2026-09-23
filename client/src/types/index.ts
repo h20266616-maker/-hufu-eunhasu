@@ -56,6 +56,11 @@ export interface MapPlace {
   lat: number;
   lng: number;
   stampId?: string;
+  /** 아래 4개는 카카오맵에 실제로 등록된 곳만 채워진다 */
+  category?: string;
+  address?: string;
+  phone?: string;
+  placeUrl?: string;
 }
 
 export interface BikeStation {

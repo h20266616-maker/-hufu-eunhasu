@@ -872,6 +872,27 @@
   flex: 1;
 }
 
+.place-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.place-info li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sub-strong);
+  font-size: 13px;
+}
+
+.place-info a {
+  color: inherit;
+}
+
 /* ---------- 내 영수증 내역 ---------- */
 .receipt-row__main {
   display: flex;

@@ -30,6 +30,10 @@ export const MAP_PLACES: readonly MapPlace[] = [
     lat: 38.1063,
     lng: 127.7104,
     stampId: 'bungeoseom',
+    category: '관광명소',
+    address: '강원특별자치도 화천군 화천읍 하리 165',
+    phone: '033-440-2543',
+    placeUrl: 'http://place.map.kakao.com/7912140',
   },
   {
     id: 'place-peace-dam',
@@ -49,6 +53,10 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'produce',
     lat: 38.045355076987,
     lng: 127.78379335524608,
+    category: '원예업',
+    address: '강원특별자치도 화천군 간동면 유촌리 1043-4',
+    phone: '0503-7150-2113',
+    placeUrl: 'http://place.map.kakao.com/855205660',
   },
   {
     id: 'place-neoraean',
@@ -58,6 +66,10 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'produce',
     lat: 38.0515866055743,
     lng: 127.816614758333,
+    category: '농산물 재배',
+    address: '강원특별자치도 화천군 간동면 간척월명로 281-13',
+    phone: '033-441-7744',
+    placeUrl: 'http://place.map.kakao.com/1419293440',
   },
   {
     id: 'place-muraei',
@@ -67,6 +79,10 @@ export const MAP_PLACES: readonly MapPlace[] = [
     icon: 'drink',
     lat: 38.0545312757994,
     lng: 127.817186388405,
+    category: '카페',
+    address: '강원특별자치도 화천군 간동면 간척월명로 305-1',
+    phone: '033-442-0927',
+    placeUrl: 'http://place.map.kakao.com/774520455',
   },
   {
     id: 'place-supe',

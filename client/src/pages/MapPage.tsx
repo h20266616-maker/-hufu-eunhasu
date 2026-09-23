@@ -1,4 +1,4 @@
-import { MapPinOff } from 'lucide-react';
+import { ExternalLink, MapPin, MapPinOff, Phone } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { BottomSheet } from '../components/BottomSheet';
 import { KakaoMap } from '../components/KakaoMap';
@@ -143,12 +143,43 @@ export function MapPage() {
           </div>
         ) : selectedPlace ? (
           <div className="sheet__body">
-            <strong>{selectedPlace.name}</strong>
+            <div>
+              <strong>{selectedPlace.name}</strong>
+              {selectedPlace.category ? <div className="sm">{selectedPlace.category}</div> : null}
+            </div>
             <div className="sm">{selectedPlace.description}</div>
+            {selectedPlace.address || selectedPlace.phone ? (
+              <ul className="place-info">
+                {selectedPlace.address ? (
+                  <li>
+                    <MapPin size={14} aria-hidden="true" />
+                    {selectedPlace.address}
+                  </li>
+                ) : null}
+                {selectedPlace.phone ? (
+                  <li>
+                    <Phone size={14} aria-hidden="true" />
+                    <a href={`tel:${selectedPlace.phone}`}>{selectedPlace.phone}</a>
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
             {selectedPlace.stampId ? <p className="sm">이곳 영수증을 인증하면 스탬프가 찍혀요.</p> : null}
             <Button variant="line" onClick={() => switchTab('receipt')}>
               영수증 인증하러 가기
             </Button>
+            {selectedPlace.placeUrl ? (
+              <a
+                className="btn btn--ghost"
+                href={selectedPlace.placeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${selectedPlace.name} 카카오맵에서 보기, 새 탭으로 열림`}
+              >
+                <ExternalLink size={16} aria-hidden="true" />
+                <span>카카오맵에서 보기</span>
+              </a>
+            ) : null}
           </div>
         ) : (
           <div className="sheet__body">
