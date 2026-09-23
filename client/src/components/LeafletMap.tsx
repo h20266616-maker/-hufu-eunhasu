@@ -15,6 +15,8 @@ interface LeafletMapProps {
 }
 
 const DEFAULT_ZOOM = 15;
+/** 평화의 댐처럼 아주 멀리 떨어진 핀 하나 때문에 가까이 모인 핀들까지 겹쳐서 못 누르게 되는 걸 막는다 */
+const MIN_FIT_ZOOM = 9;
 const PIN_SIZE: [number, number] = [44, 44];
 const PIN_ANCHOR: [number, number] = [22, 44];
 
@@ -83,15 +85,36 @@ export function LeafletMap({ markers, selectedId, onSelect, fitKey }: LeafletMap
   // 화천읍내에서 멀리 떨어진 핀도 필터 전환 시 화면 안에 들어오게 한다
   useEffect(() => {
     const map = mapRef.current;
-    const current = latestMarkersRef.current;
-    if (!map || current.length === 0) return;
-    const only = current.length === 1 ? current[0] : undefined;
-    if (only) {
-      map.setView([only.lat, only.lng], DEFAULT_ZOOM);
-      return;
+    if (!map || latestMarkersRef.current.length === 0) return;
+
+    const apply = (list: readonly MapMarker[]) => {
+      const only = list.length === 1 ? list[0] : undefined;
+      if (only) {
+        map.setView([only.lat, only.lng], DEFAULT_ZOOM);
+        return;
+      }
+      const bounds = L.latLngBounds(list.map((item) => [item.lat, item.lng]));
+      map.fitBounds(bounds, { paddingTopLeft: [40, 56], paddingBottomRight: [40, 160] });
+    };
+
+    let group = latestMarkersRef.current;
+    apply(group);
+    // 평화의 댐처럼 아주 멀리 떨어진 핀 하나 때문에 가까이 모인 핀들까지 겹쳐서 못 누르게
+    // 되는 걸 막는다. 가장 먼 핀부터 하나씩 빼고 나머지끼리만 다시 맞춘다
+    while (map.getZoom() < MIN_FIT_ZOOM && group.length > 1) {
+      const center = map.getCenter();
+      let farthestIndex = 0;
+      let farthestDist = -1;
+      group.forEach((marker, index) => {
+        const dist = Math.hypot(marker.lat - center.lat, marker.lng - center.lng);
+        if (dist > farthestDist) {
+          farthestDist = dist;
+          farthestIndex = index;
+        }
+      });
+      group = group.filter((_, index) => index !== farthestIndex);
+      apply(group);
     }
-    const bounds = L.latLngBounds(current.map((item) => [item.lat, item.lng]));
-    map.fitBounds(bounds, { paddingTopLeft: [40, 56], paddingBottomRight: [40, 160] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);
 
