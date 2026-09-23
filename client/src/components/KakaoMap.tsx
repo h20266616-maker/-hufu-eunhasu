@@ -1,5 +1,5 @@
 import { CustomOverlayMap, Map, useKakaoLoader } from 'react-kakao-maps-sdk';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MAP_CENTER } from '../data';
 import type { MapMarker } from '../types';
 import { AppIcon } from './AppIcon';
@@ -16,10 +16,25 @@ interface KakaoMapProps {
 
 export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError }: KakaoMapProps) {
   const [loading, error] = useKakaoLoader({ appkey: appKey });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<kakao.maps.Map | null>(null);
 
   useEffect(() => {
     if (error) onLoadError();
   }, [error, onLoadError]);
+
+  // .map은 flex:1로 높이가 정해지는 요소라, 지도가 생성되는 시점에 아직 레이아웃이
+  // 확정되지 않아 내부 높이를 0으로 읽어가는 경우가 있다. 컨테이너 크기가 바뀔 때마다
+  // relayout()으로 다시 계산해서 지도가 항상 실제 크기에 맞게 그려지게 한다.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.relayout();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [loading]);
 
   if (error) return null;
 
@@ -32,8 +47,16 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError }:
   }
 
   return (
-    <div className="map">
-      <Map center={MAP_CENTER} level={5} style={{ width: '100%', height: '100%' }}>
+    <div className="map" ref={containerRef}>
+      <Map
+        center={MAP_CENTER}
+        level={5}
+        style={{ width: '100%', height: '100%' }}
+        onCreate={(map) => {
+          mapRef.current = map;
+          requestAnimationFrame(() => map.relayout());
+        }}
+      >
         {markers.map((marker) => {
           const selected = marker.id === selectedId;
           return (
