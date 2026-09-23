@@ -41,6 +41,42 @@ export const MAP_PLACES: readonly MapPlace[] = [
     lng: 127.8248,
     stampId: 'peace-dam',
   },
+  {
+    id: 'place-sikmul-jeongseok',
+    kind: 'eat',
+    name: '식물의정석',
+    description: '건강하게 기른 반려식물 · 특산물 상점 입점',
+    icon: 'produce',
+    lat: 38.045355076987,
+    lng: 127.78379335524608,
+  },
+  {
+    id: 'place-neoraean',
+    kind: 'eat',
+    name: '농업회사법인 너래안',
+    description: '고소하게 짜낸 국산 들기름 · 특산물 상점 입점',
+    icon: 'produce',
+    lat: 38.0515866055743,
+    lng: 127.816614758333,
+  },
+  {
+    id: 'place-muraei',
+    kind: 'eat',
+    name: '무래이',
+    description: '간동면 카페',
+    icon: 'drink',
+    lat: 38.0545312757994,
+    lng: 127.817186388405,
+  },
+  {
+    id: 'place-supe',
+    kind: 'eat',
+    name: '수페',
+    description: '간동면 오음리',
+    icon: 'drink',
+    lat: 38.0483113763327,
+    lng: 127.832388775293,
+  },
 ];
 
 export const BIKE_STATIONS: readonly BikeStation[] = [
