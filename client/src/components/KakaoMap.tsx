@@ -1,10 +1,21 @@
 import { CustomOverlayMap, Map, useKakaoLoader } from 'react-kakao-maps-sdk';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MAP_CENTER } from '../data';
 import { useLatest } from '../hooks/useLatest';
 import type { MapMarker } from '../types';
 import { AppIcon } from './AppIcon';
 import { Spinner } from './ui/Spinner';
+
+interface MarkerGroup {
+  /** 묶인 핀들의 id를 이어붙인 값. 묶음 구성이 바뀔 때마다 자연히 새 키가 된다 */
+  id: string;
+  lat: number;
+  lng: number;
+  markers: readonly MapMarker[];
+}
+
+/** 화면 픽셀 기준으로 이 거리 안에 있는 핀들은 하나로 묶는다 (핀 하나가 44px 정도라 그보다 살짝 크게) */
+const CLUSTER_PIXEL_DISTANCE = 50;
 
 interface KakaoMapProps {
   appKey: string;
@@ -26,6 +37,7 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError, f
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
   const markersRef = useLatest(markers);
+  const [groups, setGroups] = useState<MarkerGroup[]>([]);
 
   useEffect(() => {
     if (error) onLoadError();
@@ -37,7 +49,17 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError, f
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
-    const observer = new ResizeObserver(() => {
+    let lastWidth = -1;
+    let lastHeight = -1;
+    const observer = new ResizeObserver(([entry]) => {
+      const box = entry?.contentBoxSize?.[0];
+      const width = box?.inlineSize ?? container.clientWidth;
+      const height = box?.blockSize ?? container.clientHeight;
+      // relayout() 자체가 아주 미세한 크기 변화를 만들 수 있어서, 실제로 크기가
+      // 달라졌을 때만 다시 계산한다. 그렇지 않으면 옵저버가 스스로를 계속 다시 깨운다
+      if (width === lastWidth && height === lastHeight) return;
+      lastWidth = width;
+      lastHeight = height;
       mapRef.current?.relayout();
     });
     observer.observe(container);
@@ -84,6 +106,38 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError, f
     [markersRef],
   );
 
+  // 화면상 픽셀 거리가 가까운 핀들을 하나로 묶는다. 줌·이동이 끝날 때(idle)와 markers가
+  // 바뀔 때(필터 전환, 자전거 대여/반납) 다시 계산한다
+  const recomputeGroups = useCallback(
+    (map: kakao.maps.Map) => {
+      // 화면 밖 멀리 떨어진 핀은 투영 좌표가 극단적으로 커져서 서로 엉뚱하게 묶일 수 있다.
+      // 지금 보이는 범위 안의 핀만 클러스터링 대상으로 삼는다
+      const bounds = map.getBounds();
+      const list = markersRef.current.filter((marker) => bounds.contain(new kakao.maps.LatLng(marker.lat, marker.lng)));
+      const projection = map.getProjection();
+      const placed: { point: kakao.maps.Point; markers: MapMarker[] }[] = [];
+
+      for (const marker of list) {
+        const point = projection.containerPointFromCoords(new kakao.maps.LatLng(marker.lat, marker.lng));
+        const bucket = placed.find(
+          (item) => Math.hypot(item.point.x - point.x, item.point.y - point.y) <= CLUSTER_PIXEL_DISTANCE,
+        );
+        if (bucket) bucket.markers.push(marker);
+        else placed.push({ point, markers: [marker] });
+      }
+
+      setGroups(
+        placed.map((bucket) => ({
+          id: bucket.markers.map((marker) => marker.id).join('|'),
+          lat: bucket.markers.reduce((sum, marker) => sum + marker.lat, 0) / bucket.markers.length,
+          lng: bucket.markers.reduce((sum, marker) => sum + marker.lng, 0) / bucket.markers.length,
+          markers: bucket.markers,
+        })),
+      );
+    },
+    [markersRef],
+  );
+
   // <Map>이 실제로 kakao.maps.Map을 만드는 시점은 이 컴포넌트가 loading=false로 렌더된 시점보다
   // 한 박자 늦다(내부 isLoaded 상태가 따로 있음). 그래서 마운트 직후의 첫 fit은 onCreate에서 직접 하고,
   // 이후 필터가 바뀔 때의 fit만 이 effect가 담당한다
@@ -91,6 +145,38 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError, f
     if (mapRef.current) fitToMarkers(mapRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fitKey]);
+
+  useEffect(() => {
+    if (mapRef.current) recomputeGroups(mapRef.current);
+  }, [markers, recomputeGroups]);
+
+  // onCreate/onIdle을 인라인 함수로 넘기면 매 렌더마다 다른 참조가 되어, <Map> 내부의
+  // [map, onCreate] 의존 effect가 계속 다시 실행되며 무한 루프가 생긴다. useCallback으로
+  // 참조를 고정해야 한다
+  const handleMapCreate = useCallback(
+    (map: kakao.maps.Map) => {
+      mapRef.current = map;
+      requestAnimationFrame(() => {
+        map.relayout();
+        fitToMarkers(map);
+        recomputeGroups(map);
+      });
+    },
+    [fitToMarkers, recomputeGroups],
+  );
+
+  const handleGroupClick = (group: MarkerGroup) => {
+    const map = mapRef.current;
+    if (!map) return;
+    const [only] = group.markers;
+    if (group.markers.length === 1 && only) {
+      onSelect(only.id);
+      return;
+    }
+    const bounds = new kakao.maps.LatLngBounds();
+    group.markers.forEach((marker) => bounds.extend(new kakao.maps.LatLng(marker.lat, marker.lng)));
+    map.setBounds(bounds, 56, 40, 160, 40);
+  };
 
   if (error) return null;
 
@@ -104,31 +190,35 @@ export function KakaoMap({ appKey, markers, selectedId, onSelect, onLoadError, f
 
   return (
     <div className="map" ref={containerRef}>
-      <Map
-        center={MAP_CENTER}
-        level={5}
-        style={{ position: 'absolute', inset: 0 }}
-        onCreate={(map) => {
-          mapRef.current = map;
-          requestAnimationFrame(() => {
-            map.relayout();
-            fitToMarkers(map);
-          });
-        }}
-      >
-        {markers.map((marker) => {
-          const selected = marker.id === selectedId;
+      <Map center={MAP_CENTER} level={5} style={{ position: 'absolute', inset: 0 }} onCreate={handleMapCreate} onIdle={recomputeGroups}>
+        {groups.map((group) => {
+          const [only] = group.markers;
+          if (group.markers.length === 1 && only) {
+            const selected = only.id === selectedId;
+            return (
+              <CustomOverlayMap key={group.id} position={{ lat: only.lat, lng: only.lng }} xAnchor={0.5} yAnchor={1}>
+                <button
+                  type="button"
+                  className={`pin pin--overlay pin--${only.kind}${selected ? ' pin--on' : ''}`}
+                  aria-label={only.badge === undefined ? only.label : `${only.label}, 남은 자전거 ${only.badge}대`}
+                  aria-pressed={selected}
+                  onClick={() => handleGroupClick(group)}
+                >
+                  <AppIcon name={only.icon} size={20} />
+                  {only.badge === undefined ? null : <span className="pin__badge">{only.badge}</span>}
+                </button>
+              </CustomOverlayMap>
+            );
+          }
           return (
-            <CustomOverlayMap key={marker.id} position={{ lat: marker.lat, lng: marker.lng }} xAnchor={0.5} yAnchor={1}>
+            <CustomOverlayMap key={group.id} position={{ lat: group.lat, lng: group.lng }} xAnchor={0.5} yAnchor={0.5}>
               <button
                 type="button"
-                className={`pin pin--overlay pin--${marker.kind}${selected ? ' pin--on' : ''}`}
-                aria-label={marker.badge === undefined ? marker.label : `${marker.label}, 남은 자전거 ${marker.badge}대`}
-                aria-pressed={selected}
-                onClick={() => onSelect(marker.id)}
+                className="pin pin--cluster"
+                aria-label={`${group.markers.length}개 장소 묶음, 눌러서 확대`}
+                onClick={() => handleGroupClick(group)}
               >
-                <AppIcon name={marker.icon} size={20} />
-                {marker.badge === undefined ? null : <span className="pin__badge">{marker.badge}</span>}
+                {group.markers.length}
               </button>
             </CustomOverlayMap>
           );
