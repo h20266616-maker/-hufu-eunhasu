@@ -22,17 +22,20 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Tag } from '../components/ui/Tag';
+import { Toggle } from '../components/ui/Toggle';
+import { useAccessibility } from '../context/AccessibilityContext';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
-import { SOLDIER_CASHBACK_MULTIPLIER, STAMP_SPOTS } from '../data';
+import { OWNER_MONTHLY_STATS, SOLDIER_CASHBACK_MULTIPLIER, STAMP_SPOTS } from '../data';
 
 const DEMO_TAP_COUNT = 5;
 const DEMO_TAP_WINDOW_MS = 1200;
 
 export function MyPage() {
   const { uid, isGuest, profile, currentCashback, totalCashback, usedCashback, stamps, claimedRewards } = useApp();
+  const { largeText, setLargeText } = useAccessibility();
   const { user, signOutUser, deleteAccountMock } = useAuth();
   const { push, switchTab } = useNav();
   const showToast = useToast();
@@ -67,6 +70,27 @@ export function MyPage() {
   return (
     <div className="page">
       <ScreenHeader title="MY" showBack={false} />
+
+      {!isGuest && profile.role === 'owner' ? (
+        <Card className="owner-stats">
+          <strong>이번 달 우리 가게</strong>
+          <div className="owner-stats__grid">
+            <div>
+              <strong>{OWNER_MONTHLY_STATS.receiptCount}건</strong>
+              <span className="sm">영수증 인증</span>
+            </div>
+            <div>
+              <strong>{OWNER_MONTHLY_STATS.newVisitorCount}명</strong>
+              <span className="sm">신규 방문자</span>
+            </div>
+            <div>
+              <strong>{OWNER_MONTHLY_STATS.cashUsedCount}건</strong>
+              <span className="sm">캐시백 사용</span>
+            </div>
+          </div>
+          <p className="sm">시연용 예시 숫자예요.</p>
+        </Card>
+      ) : null}
 
       {isGuest ? (
         <Card className="guest-banner">
@@ -165,6 +189,14 @@ export function MyPage() {
           </>
         ) : null}
       </nav>
+
+      <Card className="row">
+        <div>
+          <strong>큰 글씨</strong>
+          <div className="sm">글자와 아이콘을 더 크게 보여드려요</div>
+        </div>
+        <Toggle checked={largeText} onChange={setLargeText} label="큰 글씨 모드" />
+      </Card>
 
       {isRealAccount ? (
         <nav className="menu" aria-label="계정 관리">

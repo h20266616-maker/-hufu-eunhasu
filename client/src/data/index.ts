@@ -6,3 +6,4 @@ export * from './stores';
 export * from './receipts';
 export * from './profile';
 export * from './community';
+export * from './ownerStats';

@@ -777,6 +777,28 @@
   line-height: 1.7;
 }
 
+.consent-box {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.consent-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.consent-checkbox input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
 /* ---------- 커뮤니티 ---------- */
 .post-card {
   display: flex;

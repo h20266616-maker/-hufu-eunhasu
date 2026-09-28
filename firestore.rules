@@ -20,7 +20,8 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // posts/{id} - 누구나 읽을 수 있다. 작성은 로그인 사용자만, 본문 수정은 작성자만,
+    // posts/{id} - 누구나 읽을 수 있다(게스트 모드도 로그인 없이 커뮤니티를 둘러볼 수 있게 하려는
+    // 의도적인 선택). 작성은 로그인 사용자만, 본문 수정은 작성자만,
     // 좋아요(likedBy)·댓글수(commentCount)만 바꾸는 요청은 다른 로그인 사용자도 허용한다.
     match /posts/{postId} {
       allow read: if true;
@@ -33,9 +34,11 @@ service cloud.firestore {
       allow delete: if false;
 
       match /comments/{commentId} {
+        // 게스트도 둘러볼 수 있게 읽기는 열어두고, 작성은 로그인 사용자만, 삭제는 작성자 본인만 허용한다
         allow read: if true;
         allow create: if request.auth != null && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if request.auth != null && resource.data.authorUid == request.auth.uid;
       }
     }
   }

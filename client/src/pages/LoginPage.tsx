@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Field } from '../components/ui/Field';
 import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
+import { CONSENT_NOTICE } from '../data';
 import { formatPhoneInput } from '../utils/format';
 
 type Mode = 'login' | 'signup';
@@ -15,6 +16,7 @@ const PHONE_PATTERN = /^010-\d{4}-\d{4}$/;
 interface FieldErrors {
   name?: string;
   phone?: string;
+  consent?: string;
 }
 
 export function LoginPage() {
@@ -25,6 +27,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [consentChecked, setConsentChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,6 +52,7 @@ export function LoginPage() {
     const next: FieldErrors = {};
     if (name.trim().length < NAME_MIN_LENGTH) next.name = '이름을 2자 이상 입력해 주세요.';
     if (!PHONE_PATTERN.test(phone)) next.phone = '010으로 시작하는 11자리 번호를 입력해 주세요.';
+    if (!consentChecked) next.consent = '개인정보 수집·이용에 동의해야 회원가입할 수 있어요.';
     return next;
   };
 
@@ -127,6 +131,24 @@ export function LoginPage() {
               placeholder="010-0000-0000"
               disabled={loading || !firebaseReady}
             />
+            <div className="consent-box">
+              <strong className="sm">개인정보 수집·이용 동의 (필수)</strong>
+              <ul className="notice-list">
+                {CONSENT_NOTICE.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+              <label className="consent-checkbox">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(event) => setConsentChecked(event.target.checked)}
+                  disabled={loading || !firebaseReady}
+                />
+                <span>위 내용을 확인했고, 개인정보 수집·이용에 동의합니다</span>
+              </label>
+              {fieldErrors.consent ? <p className="field__error">{fieldErrors.consent}</p> : null}
+            </div>
           </>
         ) : null}
         <Field

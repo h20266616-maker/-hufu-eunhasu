@@ -69,11 +69,25 @@ VITE_FIREBASE_APP_ID=
 
 값이 없어도 앱은 실행되며, 로그인·저장 기능 대신 안내 문구가 표시됩니다.
 
-### Firestore 규칙·색인 배포
+### Firestore 보안 규칙 적용
 
+이 저장소의 `firestore.rules`를 실제 프로젝트에 적용하는 방법 두 가지입니다. 하나만 하면 됩니다.
+
+**방법 A — Firebase 콘솔에 붙여넣기 (설치 없이 가능)**
+1. [Firebase 콘솔](https://console.firebase.google.com) 접속 → 해당 프로젝트 선택
+2. 왼쪽 메뉴 **Firestore Database** → 상단 **규칙(Rules)** 탭
+3. 저장소의 `firestore.rules` 파일 내용을 전체 복사해서 콘솔 편집창에 붙여넣기 (기존 내용 전체 교체)
+4. **게시(Publish)** 버튼 클릭 — 반영까지 1분 이내
+
+**방법 B — Firebase CLI로 배포**
 ```bash
+npm install -g firebase-tools   # 처음 한 번만
+firebase login                  # 처음 한 번만
 firebase deploy --only firestore:rules,firestore:indexes
 ```
+`.firebaserc`에 프로젝트가 이미 연결돼 있어서 별도 프로젝트 선택 없이 바로 배포됩니다.
+
+**주의**: 규칙을 바꾸면 즉시 운영 중인 데이터베이스에 적용됩니다. 배포 전에 `firestore.rules` 내용을 한 번 훑어보고, 특히 `posts`/`comments`의 읽기 권한이 의도한 대로(게스트도 커뮤니티 목록은 읽을 수 있게) 열려 있는지 확인하세요.
 
 ### 커뮤니티 시드 게시글 (선택)
 

@@ -79,6 +79,30 @@
   color: var(--soldier-ink);
 }
 
+/* ---------- 사장님 가치 카드 ---------- */
+.owner-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.owner-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  text-align: center;
+}
+
+.owner-stats__grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.owner-stats__grid strong {
+  font-size: 18px;
+}
+
 /* ---------- 군인 인증 ---------- */
 .soldier-banner {
   gap: 10px;

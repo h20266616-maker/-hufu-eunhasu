@@ -72,6 +72,7 @@ export function PostWritePage({ board }: { board: Board }) {
   return (
     <form className="page" onSubmit={(event) => void handleSubmit(event)} noValidate>
       <ScreenHeader title={`${BOARD_LABELS[board]} 글쓰기`} />
+      {board === 'owner' ? <p className="sub">가게 소식이 여행자에게 보여요.</p> : null}
 
       <div className="field">
         <span className="field__label">카테고리</span>
