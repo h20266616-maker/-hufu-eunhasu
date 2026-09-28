@@ -1,4 +1,4 @@
-import { Banknote, Camera, FileText, ImagePlus, LogIn, RotateCcw, ScanLine, Smartphone } from 'lucide-react';
+import { Banknote, Camera, FileText, ImagePlus, LogIn, RotateCcw, ScanLine, Shield, Smartphone } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
@@ -11,14 +11,14 @@ import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
-import { MAX_IMAGE_BYTES, MISSIONS, RECEIPT_CATEGORIES } from '../data';
+import { MAX_IMAGE_BYTES, MISSIONS, RECEIPT_CATEGORIES, SOLDIER_CASHBACK_MULTIPLIER } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
 import type { ReceiptCategory, ReceiptForm } from '../types';
 import { isCameraSupported } from '../utils/camera';
 import { createReceiptThumbnail, resizeImageFile } from '../utils/image';
 
 export function ReceiptPage() {
-  const { uid } = useApp();
+  const { uid, profile } = useApp();
   const { push, setCameraActive } = useNav();
   const { status, errorMessage, submit, reset } = useVerifyFlow();
   const loggedIn = uid !== null;
@@ -124,6 +124,22 @@ export function ReceiptPage() {
           </div>
           <Button className="btn--small" icon={<LogIn size={16} aria-hidden="true" />} onClick={() => push({ name: 'login' })}>
             로그인
+          </Button>
+        </Card>
+      )}
+
+      {profile.soldierVerified ? (
+        <span className="soldier-badge-mini">
+          <Shield size={14} aria-hidden="true" /> 장병 혜택 적용 중
+        </span>
+      ) : (
+        <Card className="soldier-banner row">
+          <div>
+            <strong>군 장병이라면 캐시백 {SOLDIER_CASHBACK_MULTIPLIER}배</strong>
+            <div className="sm">인증하면 모든 영수증에 자동으로 적용돼요</div>
+          </div>
+          <Button className="btn--small" onClick={() => push({ name: 'soldierVerify' })}>
+            인증하러 가기
           </Button>
         </Card>
       )}

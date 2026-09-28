@@ -18,7 +18,7 @@ export function LandingPage() {
       <p className="sub">
         인증할수록 캐시백이 올라가고,
         <br />
-        쌓인 캐시로 화천 특산물을 주문할 수 있어요.
+        쌓인 캐시로 화천 특산물을 온라인 상점에서 주문할 수 있어요.
       </p>
       <div className="spacer" />
       <Button onClick={() => reset({ name: 'receipt' }, 'receipt')}>둘러보기 시작</Button>

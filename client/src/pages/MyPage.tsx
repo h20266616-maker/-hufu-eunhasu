@@ -26,7 +26,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
-import { STAMP_SPOTS } from '../data';
+import { SOLDIER_CASHBACK_MULTIPLIER, STAMP_SPOTS } from '../data';
 
 const DEMO_TAP_COUNT = 5;
 const DEMO_TAP_WINDOW_MS = 1200;
@@ -95,7 +95,7 @@ export function MyPage() {
               <div className="profile__badges">
                 <Tag>{isGuest ? '게스트' : profile.role === 'owner' ? '사장님' : '여행자'}</Tag>
                 {profile.soldierVerified ? (
-                  <Tag>
+                  <Tag className="tag--soldier">
                     <Shield size={12} aria-hidden="true" /> 군인 인증
                   </Tag>
                 ) : null}
@@ -127,8 +127,33 @@ export function MyPage() {
         </Card>
       )}
 
+      {loggedIn ? (
+        <Card className="soldier-card">
+          <div className="row">
+            <strong>군인 인증</strong>
+            {profile.soldierVerified ? (
+              <Tag className="tag--soldier">
+                <ShieldCheck size={12} aria-hidden="true" /> 인증됨
+              </Tag>
+            ) : null}
+          </div>
+          {profile.soldierVerified ? (
+            <div className="sm">
+              {profile.soldierUnit} · 전역예정일 {profile.soldierDischargeDate}
+            </div>
+          ) : (
+            <>
+              <p className="sm">
+                군 장병이면 캐시백 {SOLDIER_CASHBACK_MULTIPLIER}배를 받고, 스탬프 5개를 모으면 군인 전용 쿠폰도 받을 수 있어요.
+              </p>
+              <Button onClick={() => push({ name: 'soldierVerify' })}>군인 인증하기</Button>
+            </>
+          )}
+        </Card>
+      ) : null}
+
       <nav className="menu" aria-label="MY 메뉴">
-        <MenuRow icon={ShoppingBag} label="특산물 상점" onClick={() => switchTab('shop')} />
+        <MenuRow icon={ShoppingBag} label="온라인 상점" onClick={() => switchTab('shop')} />
         <MenuRow icon={Users} label="커뮤니티" onClick={() => switchTab('community')} />
         {loggedIn ? (
           <>

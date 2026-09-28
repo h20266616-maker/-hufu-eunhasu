@@ -63,6 +63,7 @@
 .tag {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   flex: none;
   padding: 4px 10px;
   border-radius: 99px;
@@ -71,6 +72,56 @@
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.tag--soldier {
+  background: var(--soldier);
+  color: var(--soldier-ink);
+}
+
+/* ---------- 군인 인증 ---------- */
+.soldier-banner {
+  gap: 10px;
+  border-color: var(--soldier-ink);
+  background: var(--soldier);
+}
+
+.soldier-banner strong,
+.soldier-banner .sm {
+  color: var(--soldier-ink);
+}
+
+.soldier-badge-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: var(--soldier);
+  color: var(--soldier-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.soldier-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.soldier-hero {
+  color: var(--soldier-ink);
+  font-weight: 700;
+}
+
+.soldier-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--sub-strong);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .chips {

@@ -11,7 +11,7 @@ import { Toggle } from '../components/ui/Toggle';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
 import { useToast } from '../context/ToastContext';
-import { CONSENT_NOTICE } from '../data';
+import { CONSENT_NOTICE, SOLDIER_CASHBACK_MULTIPLIER } from '../data';
 import type { Profile, Role } from '../types';
 import { maskAccount } from '../utils/format';
 
@@ -189,12 +189,12 @@ export function PersonalInfoPage() {
             <strong>군인 인증</strong>
             <div className="sm">
               {profile.soldierVerified
-                ? `인증 완료 · 캐시백 1.5배 적용 중`
+                ? `인증 완료 · 캐시백 ${SOLDIER_CASHBACK_MULTIPLIER}배 적용 중`
                 : '인증하면 캐시백을 더 많이 받을 수 있어요'}
             </div>
           </div>
           {profile.soldierVerified ? (
-            <Tag>
+            <Tag className="tag--soldier">
               <Shield size={12} aria-hidden="true" /> 인증됨
             </Tag>
           ) : (

@@ -11,7 +11,7 @@ interface TabItem {
 const TABS: readonly TabItem[] = [
   { id: 'receipt', label: '영수증 인증', Icon: Receipt },
   { id: 'map', label: '지도·자전거', Icon: MapIcon },
-  { id: 'shop', label: '특산물 상점', Icon: ShoppingBag },
+  { id: 'shop', label: '온라인 상점', Icon: ShoppingBag },
   { id: 'stamp', label: '스탬프', Icon: Stamp },
   { id: 'community', label: '커뮤니티', Icon: MessageCircle },
   { id: 'my', label: 'MY', Icon: User },

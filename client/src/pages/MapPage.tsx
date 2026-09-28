@@ -16,10 +16,11 @@ import { formatElapsed } from '../utils/format';
 
 const FILTERS: readonly { value: MapFilter; label: string }[] = [
   { value: 'all', label: '전체' },
+  { value: 'merchant', label: '오프라인 가맹점' },
   { value: 'eat', label: '음식점' },
   { value: 'cafe', label: '카페' },
   { value: 'see', label: '볼 곳' },
-  { value: 'bike', label: '자전거' },
+  { value: 'bike', label: '자전거 대여소' },
 ];
 
 const KAKAO_MAP_KEY = import.meta.env.VITE_KAKAO_MAP_KEY;
@@ -35,9 +36,9 @@ export function MapPage() {
   const useKakao = Boolean(KAKAO_MAP_KEY) && !kakaoFailed;
 
   const markers = useMemo<MapMarker[]>(() => {
-    const places: MapMarker[] = MAP_PLACES.filter((place) => filter === 'all' || place.kind === filter).map(
-      (place) => ({ id: place.id, kind: place.kind, icon: place.icon, label: place.name, lat: place.lat, lng: place.lng }),
-    );
+    const places: MapMarker[] = MAP_PLACES.filter(
+      (place) => filter === 'all' || filter === 'merchant' || place.kind === filter,
+    ).map((place) => ({ id: place.id, kind: place.kind, icon: place.icon, label: place.name, lat: place.lat, lng: place.lng }));
     const stations: MapMarker[] =
       filter === 'all' || filter === 'bike'
         ? BIKE_STATIONS.map((station) => ({
@@ -69,6 +70,7 @@ export function MapPage() {
   return (
     <div className="page page--map">
       <ScreenHeader title="지도·자전거" showBack={false} />
+      <p className="sub">지도의 가게는 오프라인 가맹점이에요. 온라인 주문은 온라인 상점에서 할 수 있어요.</p>
 
       {useKakao ? null : (
         <div className="map-notice" role="note">
@@ -184,7 +186,7 @@ export function MapPage() {
         ) : (
           <div className="sheet__body">
             <strong>핀을 눌러보세요</strong>
-            <div className="sm">자전거 대여소를 누르면 바로 빌릴 수 있어요. 카드 결제가 되는 제휴 매장도 함께 보여드려요.</div>
+            <div className="sm">자전거 대여소를 누르면 바로 빌릴 수 있어요. 카드 결제가 되는 오프라인 가맹점도 함께 보여드려요.</div>
           </div>
         )}
       </BottomSheet>

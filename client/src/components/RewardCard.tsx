@@ -3,6 +3,7 @@ import type { StampReward } from '../types';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { ProgressBar } from './ui/ProgressBar';
+import { Tag } from './ui/Tag';
 
 interface RewardCardProps {
   reward: StampReward;
@@ -22,7 +23,10 @@ export function RewardCard({ reward, stampCount, claimed, onClaim }: RewardCardP
           <Icon size={22} aria-hidden="true" />
         </span>
         <div className="reward__text">
-          <strong>{reward.title}</strong>
+          <strong>
+            {reward.title}
+            {reward.soldierOnly ? <Tag className="tag--soldier">군인 전용</Tag> : null}
+          </strong>
           <p className="sm">{reward.description}</p>
         </div>
       </div>

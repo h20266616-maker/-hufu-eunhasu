@@ -47,7 +47,8 @@ export interface StampReward {
 }
 
 export type PlaceKind = 'eat' | 'cafe' | 'see';
-export type MapFilter = 'all' | PlaceKind | 'bike';
+/** 'merchant'는 음식점·카페·볼거리를 한 번에 보는 "오프라인 가맹점" 묶음 필터다 */
+export type MapFilter = 'all' | PlaceKind | 'bike' | 'merchant';
 
 export interface MapPlace {
   id: string;

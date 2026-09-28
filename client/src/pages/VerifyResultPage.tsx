@@ -6,7 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
-import { STAMP_REWARDS, STAMP_SPOTS } from '../data';
+import { SOLDIER_CASHBACK_MULTIPLIER, STAMP_REWARDS, STAMP_SPOTS } from '../data';
 import type { ReceiptRecord } from '../types';
 import { getEffectiveRate } from '../utils/cashback';
 import { formatWon } from '../utils/format';
@@ -23,6 +23,9 @@ export function VerifyResultPage({ receipt, stampId, rewardIds }: VerifyResultPa
   const reduceMotion = useReducedMotion();
   const effectiveRate = getEffectiveRate(currentTier.rate, profile.soldierVerified);
   const nextEffectiveRate = nextTier ? getEffectiveRate(nextTier.rate, profile.soldierVerified) : null;
+  const baseCashback = profile.soldierVerified
+    ? Math.round(receipt.cashback / SOLDIER_CASHBACK_MULTIPLIER)
+    : receipt.cashback;
 
   const spot = STAMP_SPOTS.find((item) => item.id === stampId);
   const rewards = STAMP_REWARDS.filter((reward) => rewardIds.includes(reward.id));
@@ -42,6 +45,11 @@ export function VerifyResultPage({ receipt, stampId, rewardIds }: VerifyResultPa
         </p>
         <Tag>{receipt.category}</Tag>
         {receipt.receiptForm ? <Tag>{receipt.receiptForm} 영수증</Tag> : null}
+        {profile.soldierVerified ? (
+          <p className="sm soldier-hero">
+            장병 혜택 {SOLDIER_CASHBACK_MULTIPLIER}배 적용 · 기본 {formatWon(baseCashback)} → {formatWon(receipt.cashback)}
+          </p>
+        ) : null}
       </div>
 
       {spot ? (
@@ -97,7 +105,7 @@ export function VerifyResultPage({ receipt, stampId, rewardIds }: VerifyResultPa
       <Card className="row">
         <div>
           <strong>내 캐시</strong>
-          <div className="sm">특산물 상점에서 바로 사용 가능</div>
+          <div className="sm">온라인 상점에서 바로 사용 가능</div>
         </div>
         <Tag>{formatWon(currentCashback)}</Tag>
       </Card>

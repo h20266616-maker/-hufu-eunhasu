@@ -1,4 +1,5 @@
 import { useApp } from '../context/AppContext';
+import { SOLDIER_CASHBACK_MULTIPLIER } from '../data';
 import { getEffectiveRate, getMaxTierCount } from '../utils/cashback';
 import { formatWon } from '../utils/format';
 import { CashbackBreakdown } from './CashbackBreakdown';
@@ -17,7 +18,7 @@ export function CashbackSummary() {
       <CashbackBreakdown total={totalCashback} current={currentCashback} used={usedCashback} tone="onBrand" />
       <div className="hero__meta">
         {count}번 인증 · 현재 <b>{effectiveRate}%</b> 캐시백
-        {profile.soldierVerified ? ' (군인 1.5배 적용)' : ''}
+        {profile.soldierVerified ? ` (군인 ${SOLDIER_CASHBACK_MULTIPLIER}배 적용)` : ''}
       </div>
       <ProgressBar value={count} max={getMaxTierCount()} label="캐시백 등급 진행률" tone="onBrand" />
       <div className="hero__next">

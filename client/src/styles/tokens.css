@@ -14,6 +14,10 @@
   /* --sub 를 --ink 쪽으로 살짝 당겨 작은 글자의 명도 대비를 확보한다 */
   --sub-strong: var(--sub);
 
+  /* 군인 인증 관련 요소에만 쓰는 올리브·카키 보조색 */
+  --soldier: #eef0df;
+  --soldier-ink: #4f5b2f;
+
   --tabbar-h: 60px;
   --frame-w: 390px;
 }
@@ -32,6 +36,8 @@
     --sub: #93a3af;
     --line: #2a343c;
     --warn: #222c34;
+    --soldier: #2b3020;
+    --soldier-ink: #b9c98d;
   }
 }
 
@@ -42,4 +48,6 @@
   --sub: #93a3af;
   --line: #2a343c;
   --warn: #222c34;
+  --soldier: #2b3020;
+  --soldier-ink: #b9c98d;
 }

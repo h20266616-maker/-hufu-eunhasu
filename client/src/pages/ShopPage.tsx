@@ -31,7 +31,8 @@ export function ShopPage() {
 
   return (
     <div className="page">
-      <ScreenHeader title="특산물 상점" showBack={false} />
+      <ScreenHeader title="온라인 상점" showBack={false} />
+      <p className="sub">화천 대표 브랜드를 스마트스토어에서 만나보세요. 캐시백으로 결제할 수 있어요.</p>
       <Card className="row">
         <div>
           <strong>사용 가능한 캐시</strong>

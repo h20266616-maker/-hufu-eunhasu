@@ -19,7 +19,7 @@ export const STAMP_REWARDS: readonly StampReward[] = [
     kind: 'coupon',
     threshold: 5,
     title: '특산물 쿠폰',
-    description: '특산물 상점에서 바로 쓰는 캐시 5,000원을 드려요',
+    description: '온라인 상점에서 바로 쓰는 캐시 5,000원을 드려요',
     cash: 5000,
   },
   {
