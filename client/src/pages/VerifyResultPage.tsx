@@ -41,6 +41,7 @@ export function VerifyResultPage({ receipt, stampId, rewardIds }: VerifyResultPa
           {receipt.shop} · {formatWon(receipt.amount)}의 {receipt.rate}%
         </p>
         <Tag>{receipt.category}</Tag>
+        {receipt.receiptForm ? <Tag>{receipt.receiptForm} 영수증</Tag> : null}
       </div>
 
       {spot ? (

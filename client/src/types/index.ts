@@ -4,6 +4,8 @@ export type Board = 'traveler' | 'owner';
 
 export type ReceiptCategory = '식비' | '체험' | '숙박' | '특산물';
 export type ReceiptSource = 'photo' | 'cash';
+/** 실제 영수증이 종이인지 전자(문자·앱 화면 캡처 등)인지. 현금 QR 인증은 실물 영수증이 없어서 해당 없음 */
+export type ReceiptForm = '종이' | '전자';
 
 export type IconKey =
   | 'island'
@@ -131,6 +133,8 @@ export interface ReceiptRecord {
   createdAt: string;
   /** 촬영한 영수증 사진 (작은 썸네일 data URL). 현금 QR 인증이나 이전 기록에는 없을 수 있다 */
   imageUrl?: string;
+  /** 사진으로 인증한 경우에만 있다. 현금 QR 인증에는 실물 영수증이 없다 */
+  receiptForm?: ReceiptForm;
 }
 
 export interface Profile {

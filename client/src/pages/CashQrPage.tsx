@@ -3,17 +3,20 @@ import { useState, type SubmitEvent } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Spinner } from '../components/ui/Spinner';
-import { CASH_QR_STORE, MAX_RECEIPT_AMOUNT } from '../data';
+import { CASH_QR_STORE, MAX_RECEIPT_AMOUNT, RECEIPT_CATEGORIES } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
+import type { ReceiptCategory } from '../types';
 import { formatWon, parseAmount } from '../utils/format';
 
 export function CashQrPage() {
   const { status, errorMessage, submit } = useVerifyFlow();
   const [amountText, setAmountText] = useState(String(CASH_QR_STORE.defaultAmount));
   const [amountError, setAmountError] = useState<string | null>(null);
+  const [category, setCategory] = useState<ReceiptCategory>(CASH_QR_STORE.category);
   const loading = status === 'loading';
 
   const handleSubmit = (event: SubmitEvent) => {
@@ -32,7 +35,7 @@ export function CashQrPage() {
       source: 'cash',
       shop: CASH_QR_STORE.shop,
       amount,
-      category: CASH_QR_STORE.category,
+      category,
       stampId: CASH_QR_STORE.stampId,
     });
   };
@@ -63,6 +66,16 @@ export function CashQrPage() {
         placeholder="결제 금액"
         disabled={loading}
       />
+      <div className="field">
+        <span className="field__label">지출 카테고리</span>
+        <div className="chips chips--wrap" role="group" aria-label="지출 카테고리">
+          {RECEIPT_CATEGORIES.map((item) => (
+            <Chip key={item} selected={category === item} onClick={() => setCategory(item)} disabled={loading}>
+              {item}
+            </Chip>
+          ))}
+        </div>
+      </div>
       {loading ? <Spinner label="사장님 확인을 기다리는 중…" /> : null}
       {status === 'error' && errorMessage ? <ErrorState title="확인에 실패했어요" description={errorMessage} /> : null}
       <div className="spacer" />

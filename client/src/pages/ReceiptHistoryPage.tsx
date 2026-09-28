@@ -44,6 +44,7 @@ export function ReceiptHistoryPage() {
                     <strong>{receipt.shop}</strong>
                     <div className="sm">
                       {formatDateTime(receipt.createdAt)} · {receipt.category} · {receipt.source === 'cash' ? '현금 QR' : '사진'}
+                      {receipt.receiptForm ? ` · ${receipt.receiptForm}` : ''}
                     </div>
                     <div className="sm">
                       {formatWon(receipt.amount)}의 {receipt.rate}%

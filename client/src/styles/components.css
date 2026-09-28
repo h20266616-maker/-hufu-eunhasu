@@ -87,6 +87,9 @@
 }
 
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: none;
   min-height: 44px;
   padding: 0 16px;

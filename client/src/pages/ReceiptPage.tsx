@@ -1,17 +1,19 @@
-import { Banknote, Camera, ImagePlus, LogIn, RotateCcw, ScanLine } from 'lucide-react';
+import { Banknote, Camera, FileText, ImagePlus, LogIn, RotateCcw, ScanLine, Smartphone } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { CameraCapture } from '../components/CameraCapture';
 import { CashbackSummary } from '../components/CashbackSummary';
 import { ReceiptPaper } from '../components/ReceiptPaper';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip } from '../components/ui/Chip';
 import { Spinner } from '../components/ui/Spinner';
 import { ErrorState } from '../components/ui/StateMessage';
 import { Tag } from '../components/ui/Tag';
 import { useApp } from '../context/AppContext';
 import { useNav } from '../context/NavContext';
-import { MAX_IMAGE_BYTES, MISSIONS } from '../data';
+import { MAX_IMAGE_BYTES, MISSIONS, RECEIPT_CATEGORIES } from '../data';
 import { useVerifyFlow } from '../hooks/useVerifyFlow';
+import type { ReceiptCategory, ReceiptForm } from '../types';
 import { isCameraSupported } from '../utils/camera';
 import { createReceiptThumbnail, resizeImageFile } from '../utils/image';
 
@@ -25,6 +27,8 @@ export function ReceiptPage() {
   const [pickError, setPickError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [category, setCategory] = useState<ReceiptCategory>('식비');
+  const [receiptForm, setReceiptForm] = useState<ReceiptForm>('종이');
   const cameraInput = useRef<HTMLInputElement>(null);
   const albumInput = useRef<HTMLInputElement>(null);
   const loading = status === 'loading';
@@ -107,7 +111,7 @@ export function ReceiptPage() {
       push({ name: 'login' });
       return;
     }
-    void submit({ source: 'photo', imageUrl: imageDataUrl ?? undefined });
+    void submit({ source: 'photo', imageUrl: imageDataUrl ?? undefined, category, receiptForm });
   };
 
   return (
@@ -184,6 +188,33 @@ export function ReceiptPage() {
         {processing ? <Spinner label="사진을 준비하는 중…" /> : null}
 
         <ReceiptPaper imageUrl={previewUrl} loading={loading} />
+
+        {previewUrl ? (
+          <div className="field">
+            <span className="field__label">지출 카테고리</span>
+            <div className="chips chips--wrap" role="group" aria-label="지출 카테고리">
+              {RECEIPT_CATEGORIES.map((item) => (
+                <Chip key={item} selected={category === item} onClick={() => setCategory(item)}>
+                  {item}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {previewUrl ? (
+          <div className="field">
+            <span className="field__label">영수증 종류</span>
+            <div className="chips chips--wrap" role="group" aria-label="영수증 종류">
+              <Chip selected={receiptForm === '종이'} onClick={() => setReceiptForm('종이')}>
+                <FileText size={14} aria-hidden="true" /> 종이
+              </Chip>
+              <Chip selected={receiptForm === '전자'} onClick={() => setReceiptForm('전자')}>
+                <Smartphone size={14} aria-hidden="true" /> 전자
+              </Chip>
+            </div>
+          </div>
+        ) : null}
 
         {pickError ? <ErrorState title="사진을 사용할 수 없어요" description={pickError} /> : null}
         {status === 'error' && errorMessage ? (

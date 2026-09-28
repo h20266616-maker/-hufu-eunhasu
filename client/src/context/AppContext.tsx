@@ -15,12 +15,12 @@ import { useReceipts } from '../hooks/useReceipts';
 import { useRide } from '../hooks/useRide';
 import { useStamps } from '../hooks/useStamps';
 import { useUserDoc } from '../hooks/useUserDoc';
-import type { NotificationKey, Profile, ReceiptCategory, ReceiptRecord, StampRecord, StampSpot } from '../types';
+import type { NotificationKey, Profile, ReceiptCategory, ReceiptForm, ReceiptRecord, StampRecord, StampSpot } from '../types';
 import { getEffectiveRate, getNextTier, getTier } from '../utils/cashback';
 import { randomBetween, wait } from '../utils/format';
 
 export type VerifyInput =
-  | { source: 'photo'; imageUrl?: string }
+  | { source: 'photo'; imageUrl?: string; category: ReceiptCategory; receiptForm: ReceiptForm }
   | { source: 'cash'; shop: string; amount: number; category: ReceiptCategory; stampId: string };
 
 export type VerifyOutcome =
@@ -116,7 +116,9 @@ function useAppState() {
       const index = mockCursor.current % MOCK_RECEIPTS.length;
       mockCursor.current += 1;
       const mock = MOCK_RECEIPTS[index];
-      const resolved = input.source === 'cash' ? input : mock ?? null;
+      // 사진 인증은 아직 실제 OCR이 없어서 가게·금액은 예시 데이터를 쓰지만,
+      // 카테고리는 본인이 고른 값이 실제 지출과 더 맞으니 그대로 반영한다
+      const resolved = input.source === 'cash' ? input : mock ? { ...mock, category: input.category } : null;
       if (!resolved) return { ok: false, message: VERIFY_FAILURE_MESSAGE };
 
       if (isGuest) {
@@ -134,6 +136,7 @@ function useAppState() {
           cashback,
           createdAt: new Date().toISOString(),
           ...(input.source === 'photo' && input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+          ...(input.source === 'photo' ? { receiptForm: input.receiptForm } : {}),
         };
         const target = pickStampSpot(before.stamps, resolved.stampId);
         const nextStamps = target ? [...before.stamps, { spotId: target.id, earnedAt: new Date().toISOString() }] : before.stamps;
@@ -161,6 +164,7 @@ function useAppState() {
             category: resolved.category,
             source: input.source,
             ...(input.source === 'photo' && input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+            ...(input.source === 'photo' ? { receiptForm: input.receiptForm } : {}),
           },
           userDoc.soldierVerified,
         );

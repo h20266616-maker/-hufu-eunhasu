@@ -1,7 +1,7 @@
 import { addDoc, collection, increment, onSnapshot, orderBy, query, setDoc, doc, where } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
-import type { ReceiptCategory, ReceiptRecord, ReceiptSource } from '../types';
+import type { ReceiptCategory, ReceiptForm, ReceiptRecord, ReceiptSource } from '../types';
 import { calcCashback, getEffectiveRate, getTier } from '../utils/cashback';
 import { useLatest } from './useLatest';
 
@@ -11,6 +11,7 @@ export interface CommitReceiptInput {
   category: ReceiptCategory;
   source: ReceiptSource;
   imageUrl?: string;
+  receiptForm?: ReceiptForm;
 }
 
 /** receipts 컬렉션을 uid로 필터링해 구독하고, 인증 시 receipts 문서 생성 + users 문서 캐시 증액을 함께 한다 */
