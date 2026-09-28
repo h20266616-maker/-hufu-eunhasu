@@ -1,4 +1,4 @@
-import { Pencil, Shield } from 'lucide-react';
+import { Info, Pencil, Shield } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
 import { AccountRequiredNotice } from '../components/AccountRequiredNotice';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -51,11 +51,11 @@ export function PersonalInfoPage() {
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile));
   const [errors, setErrors] = useState<DraftErrors>({});
 
-  if (!uid || isGuest) {
+  if (!uid) {
     return (
       <div className="page">
         <ScreenHeader title="개인정보 관리" />
-        <AccountRequiredNotice isGuest={isGuest} description="개인정보 관리는 실제 계정으로 로그인한 뒤에 이용할 수 있어요." />
+        <AccountRequiredNotice isGuest={false} description="개인정보 관리는 로그인한 뒤에 이용할 수 있어요." />
       </div>
     );
   }
@@ -116,6 +116,16 @@ export function PersonalInfoPage() {
           )
         }
       />
+
+      {isGuest ? (
+        <div className="notice" role="note">
+          <Info size={18} aria-hidden="true" />
+          <div>
+            <strong>체험 계정이에요</strong>
+            <p className="sm">아래 정보는 더미 값으로 채워져 있어요. 실제 개인정보를 입력하지 않아도 돼요.</p>
+          </div>
+        </div>
+      ) : null}
 
       {editing ? (
         <form className="form-stack" onSubmit={(event) => void handleSave(event)} noValidate>

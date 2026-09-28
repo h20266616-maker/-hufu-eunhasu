@@ -18,7 +18,7 @@ import { isCameraSupported } from '../utils/camera';
 import { createReceiptThumbnail, resizeImageFile } from '../utils/image';
 
 export function ReceiptPage() {
-  const { uid, profile } = useApp();
+  const { uid, isGuest, profile } = useApp();
   const { push, setCameraActive } = useNav();
   const { status, errorMessage, submit, reset } = useVerifyFlow();
   const loggedIn = uid !== null;
@@ -117,6 +117,7 @@ export function ReceiptPage() {
   return (
     <div className="page">
       <p className="home-tagline">영수증 찍으면 화천에서 쓸 수 있는 캐시백이 쌓여요</p>
+      {isGuest ? <p className="sub">체험 모드로 모든 기능을 써볼 수 있어요</p> : null}
 
       {loggedIn ? null : (
         <Card className="row">

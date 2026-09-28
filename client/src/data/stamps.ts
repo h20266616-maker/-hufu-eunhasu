@@ -12,6 +12,9 @@ export const STAMP_SPOTS: readonly StampSpot[] = [
   { id: 'makguksu', name: '산천어막국수', icon: 'restaurant', hint: '제휴 식당', lat: 38.1066, lng: 127.7082 },
 ];
 
+/** 체험(익명) 계정을 처음 만들 때 미리 찍어주는 스탬프. 시연이 바로 이어지게 하기 위한 값 */
+export const GUEST_SEED_STAMP_SPOT_IDS: readonly string[] = STAMP_SPOTS.slice(0, 2).map((spot) => spot.id);
+
 /** 여행자 등급에 곱해서 군인 인증 회원의 캐시백을 계산한다. data/cashback.ts와 함께 조정해요 */
 export const STAMP_REWARDS: readonly StampReward[] = [
   {

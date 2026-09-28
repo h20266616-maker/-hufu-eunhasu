@@ -15,9 +15,10 @@ import type { Board } from '../types';
 const MAX_TITLE_LENGTH = 40;
 const MAX_BODY_LENGTH = 500;
 const MIN_BODY_LENGTH = 5;
+const DEFAULT_SUBMIT_FAIL_MESSAGE = '글을 올리지 못했어요. 다시 시도해 주세요.';
 
 export function PostWritePage({ board }: { board: Board }) {
-  const { uid, isGuest, profile, addPost } = useApp();
+  const { uid, profile, addPost } = useApp();
   const { back } = useNav();
   const showToast = useToast();
   const categories = BOARD_CATEGORIES[board];
@@ -28,11 +29,11 @@ export function PostWritePage({ board }: { board: Board }) {
   const [submitting, setSubmitting] = useState(false);
   const bodyId = useId();
 
-  if (!uid || isGuest) {
+  if (!uid) {
     return (
       <div className="page">
         <ScreenHeader title="글쓰기" />
-        <AccountRequiredNotice isGuest={isGuest} description="글쓰기는 실제 계정으로 로그인한 뒤에 이용할 수 있어요." />
+        <AccountRequiredNotice isGuest={false} description="글쓰기는 로그인한 뒤에 이용할 수 있어요." />
       </div>
     );
   }
@@ -63,9 +64,9 @@ export function PostWritePage({ board }: { board: Board }) {
       await addPost({ board, category, title: title.trim(), body: body.trim(), author: profile.nickname });
       showToast('글을 올렸어요');
       back();
-    } catch {
+    } catch (error) {
       setSubmitting(false);
-      showToast('글을 올리지 못했어요. 다시 시도해 주세요.');
+      showToast(error instanceof Error && error.message ? error.message : DEFAULT_SUBMIT_FAIL_MESSAGE);
     }
   };
 

@@ -21,14 +21,14 @@ const BOARD_OPTIONS: readonly { value: Board; label: string }[] = [
 ];
 
 export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
-  const { uid, isGuest, posts, profile } = useApp();
+  const { uid, posts, profile } = useApp();
   const { push, replace } = useNav();
   const showToast = useToast();
   const [category, setCategory] = useState(ALL_CATEGORY);
 
-  const isRealAccount = uid !== null && !isGuest;
+  const loggedIn = uid !== null;
   const ownerLocked = board === 'owner' && profile.role !== 'owner';
-  const readOnly = !isRealAccount || ownerLocked;
+  const readOnly = !loggedIn || ownerLocked;
 
   const visiblePosts = useMemo(
     () =>
@@ -44,7 +44,7 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
   };
 
   const handleWrite = () => {
-    if (!isRealAccount) {
+    if (!loggedIn) {
       push({ name: 'login' });
       return;
     }
@@ -75,11 +75,8 @@ export function CommunityPage({ board = 'traveler' }: { board?: Board }) {
 
       <SegmentControl options={BOARD_OPTIONS} value={board} onChange={handleBoardChange} ariaLabel="커뮤니티 종류" />
 
-      {!isRealAccount ? (
-        <AccountRequiredNotice
-          isGuest={isGuest}
-          description={isGuest ? '커뮤니티 글쓰기는 회원가입 후 이용할 수 있어요. 목록은 지금도 볼 수 있어요.' : '지금은 목록만 읽을 수 있어요.'}
-        />
+      {!loggedIn ? (
+        <AccountRequiredNotice isGuest={false} description="커뮤니티 글쓰기는 로그인 후 이용할 수 있어요. 목록은 지금도 볼 수 있어요." />
       ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />

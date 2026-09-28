@@ -79,6 +79,20 @@
   color: var(--soldier-ink);
 }
 
+/* ---------- 시연 도우미 ---------- */
+.guest-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guest-demo__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--warn);
+}
+
 /* ---------- 사장님 가치 카드 ---------- */
 .owner-stats {
   display: flex;

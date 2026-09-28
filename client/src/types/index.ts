@@ -150,6 +150,8 @@ export interface Profile {
   soldierVerified: boolean;
   soldierUnit: string;
   soldierDischargeDate: string;
+  /** Firebase 익명 로그인(체험 계정)으로 만들어진 계정인지. 기능 제한 용도로는 쓰지 않는다 */
+  isGuest?: boolean;
 }
 
 export type NotificationKey = 'cashback' | 'stamp' | 'community' | 'marketing';
@@ -183,6 +185,8 @@ export interface Post {
   liked: boolean;
   commentCount: number;
   mine: boolean;
+  /** 체험(익명) 계정이 쓴 글인지. 화면 표시는 일반 글과 동일하게 한다 */
+  isGuest: boolean;
 }
 
 export interface SeedComment {

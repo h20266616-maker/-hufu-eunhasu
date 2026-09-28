@@ -11,7 +11,7 @@ export interface AwardResult {
 }
 
 /** stamps/{uid} 문서 하나에 스탬프 지점별 획득 시각을 map으로 저장한다 */
-export function useStamps(uid: string | null) {
+export function useStamps(uid: string | null, seedSpotIds?: readonly string[]) {
   const [stamps, setStamps] = useState<StampRecord[]>([]);
   const [freshStampId, setFreshStampId] = useState<string | null>(null);
   const stampsRef = useLatest(stamps);
@@ -25,12 +25,21 @@ export function useStamps(uid: string | null) {
     const unsubscribe = onSnapshot(
       ref,
       (snap) => {
+        // 체험(익명) 계정을 처음 만들 때만 도는 분기 — 문서가 아직 없을 때만 시드 스탬프를 채운다
+        if (!snap.exists() && seedSpotIds && seedSpotIds.length > 0) {
+          const now = new Date().toISOString();
+          const records = Object.fromEntries(seedSpotIds.map((spotId) => [spotId, now]));
+          void setDoc(ref, { records });
+          setStamps(seedSpotIds.map((spotId) => ({ spotId, earnedAt: now })));
+          return;
+        }
         const records = (snap.data()?.records ?? {}) as Record<string, string>;
         setStamps(Object.entries(records).map(([spotId, earnedAt]) => ({ spotId, earnedAt })));
       },
       (error) => console.error('[useStamps] 스탬프를 불러오지 못했어요', error),
     );
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
   /** 선호 스탬프가 이미 있으면 아직 안 찍은 첫 스탬프로 대체한다. 모두 찍었다면 null */

@@ -1,7 +1,6 @@
 import {
   Award,
   Bell,
-  Compass,
   LogIn,
   LogOut,
   MessagesSquare,
@@ -17,6 +16,7 @@ import {
 import { useRef, useState } from 'react';
 import { CashbackBreakdown } from '../components/CashbackBreakdown';
 import { DemoPanel } from '../components/DemoPanel';
+import { GuestDemoCard } from '../components/GuestDemoCard';
 import { MenuRow } from '../components/MenuRow';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Button } from '../components/ui/Button';
@@ -43,7 +43,6 @@ export function MyPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const tapState = useRef({ count: 0, last: 0 });
   const loggedIn = uid !== null;
-  const isRealAccount = loggedIn && !isGuest;
 
   const handleVersionTap = () => {
     const now = Date.now();
@@ -58,20 +57,20 @@ export function MyPage() {
 
   const handleSignOut = async () => {
     await signOutUser();
-    showToast('로그아웃했어요');
+    showToast(isGuest ? '체험 세션을 종료했어요. 다음에 들어오면 새 체험 계정으로 시작해요' : '로그아웃했어요');
   };
 
   const handleDeleteAccount = async () => {
     await deleteAccountMock();
     setConfirmingDelete(false);
-    showToast('탈퇴 처리했어요 (시연용 mock)');
+    showToast(isGuest ? '체험 계정을 종료했어요' : '탈퇴 처리했어요 (시연용 mock)');
   };
 
   return (
     <div className="page">
       <ScreenHeader title="MY" showBack={false} />
 
-      {!isGuest && profile.role === 'owner' ? (
+      {profile.role === 'owner' ? (
         <Card className="owner-stats">
           <strong>이번 달 우리 가게</strong>
           <div className="owner-stats__grid">
@@ -92,21 +91,7 @@ export function MyPage() {
         </Card>
       ) : null}
 
-      {isGuest ? (
-        <Card className="guest-banner">
-          <div className="row">
-            <div>
-              <span className="guest-banner__tag">
-                <Compass size={14} aria-hidden="true" /> 게스트로 체험 중입니다
-              </span>
-              <p className="sm">지금 쌓은 캐시·스탬프는 회원가입해야 계속 가져갈 수 있어요.</p>
-            </div>
-          </div>
-          <Button icon={<LogIn size={16} aria-hidden="true" />} onClick={() => push({ name: 'login' })}>
-            로그인 / 회원가입
-          </Button>
-        </Card>
-      ) : null}
+      {isGuest ? <GuestDemoCard /> : null}
 
       {loggedIn ? (
         <Card className="profile">
@@ -117,7 +102,7 @@ export function MyPage() {
             <div>
               <strong className="profile__name">{profile.nickname}</strong>
               <div className="profile__badges">
-                <Tag>{isGuest ? '게스트' : profile.role === 'owner' ? '사장님' : '여행자'}</Tag>
+                <Tag>{isGuest ? '체험 계정' : profile.role === 'owner' ? '사장님' : '여행자'}</Tag>
                 {profile.soldierVerified ? (
                   <Tag className="tag--soldier">
                     <Shield size={12} aria-hidden="true" /> 군인 인증
@@ -126,6 +111,11 @@ export function MyPage() {
               </div>
             </div>
           </div>
+          {isGuest ? (
+            <button type="button" className="link-btn" onClick={() => push({ name: 'login' })}>
+              정식 회원가입하기 (지금 데이터 그대로 이어져요)
+            </button>
+          ) : null}
           <CashbackBreakdown total={totalCashback} current={currentCashback} used={usedCashback} />
           <div className="row">
             <strong className="sm">스탬프</strong>
@@ -198,22 +188,26 @@ export function MyPage() {
         <Toggle checked={largeText} onChange={setLargeText} label="큰 글씨 모드" />
       </Card>
 
-      {isRealAccount ? (
+      {loggedIn ? (
         <nav className="menu" aria-label="계정 관리">
           <MenuRow icon={LogOut} label="로그아웃" onClick={() => void handleSignOut()} />
-          <MenuRow icon={UserX} label="회원탈퇴" onClick={() => setConfirmingDelete(true)} />
+          <MenuRow icon={UserX} label={isGuest ? '체험 계정 종료' : '회원탈퇴'} onClick={() => setConfirmingDelete(true)} />
         </nav>
       ) : null}
 
       {confirmingDelete ? (
         <Card>
-          <strong>정말 탈퇴할까요?</strong>
-          <p className="sm">시연용 mock이라 실제 데이터는 지워지지 않고 로그아웃돼요.</p>
+          <strong>{isGuest ? '정말 체험 계정을 종료할까요?' : '정말 탈퇴할까요?'}</strong>
+          <p className="sm">
+            {isGuest
+              ? '지금 세션에서 로그아웃돼요. 다음에 들어오면 새 체험 계정으로 다시 시작해요.'
+              : '시연용 mock이라 실제 데이터는 지워지지 않고 로그아웃돼요.'}
+          </p>
           <div className="btn-pair">
             <Button variant="line" onClick={() => setConfirmingDelete(false)}>
               취소
             </Button>
-            <Button onClick={() => void handleDeleteAccount()}>탈퇴하기</Button>
+            <Button onClick={() => void handleDeleteAccount()}>{isGuest ? '종료하기' : '탈퇴하기'}</Button>
           </div>
         </Card>
       ) : null}

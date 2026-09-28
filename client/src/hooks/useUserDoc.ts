@@ -1,6 +1,6 @@
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
-import { DEFAULT_NOTIFICATION_PREFS, DEFAULT_PROFILE, GUEST_PROFILE } from '../data';
+import { DEFAULT_NOTIFICATION_PREFS, DEFAULT_PROFILE, GUEST_PROFILE, GUEST_SEED_CASHBACK } from '../data';
 import { db } from '../lib/firebase';
 import type { NotificationKey, Profile } from '../types';
 
@@ -49,7 +49,7 @@ function normalizeUserDoc(raw: Partial<UserDoc> & LegacyFields): Partial<UserDoc
 }
 
 /** users/{uid} 문서 전체(개인정보·캐시백·스탬프 보상·알림 설정)를 구독한다 */
-export function useUserDoc(uid: string | null, fallback: { nickname?: string; email?: string }) {
+export function useUserDoc(uid: string | null, fallback: { nickname?: string; email?: string; isGuest?: boolean }) {
   const [data, setData] = useState<UserDoc>(GUEST_USER_DOC);
   const [loaded, setLoaded] = useState(uid === null);
 
@@ -67,10 +67,15 @@ export function useUserDoc(uid: string | null, fallback: { nickname?: string; em
         if (snap.exists()) {
           setData({ ...DEFAULT_USER_DOC, ...normalizeUserDoc(snap.data() as Partial<UserDoc> & LegacyFields) });
         } else {
+          // 체험(익명) 계정은 시연이 바로 이어지도록 샘플 캐시백을 채워서 처음 만든다.
+          // 이 분기는 문서가 아직 없을 때만 도니, 이미 만들어진 계정을 다시 덮어쓰지 않는다
           const initial: UserDoc = {
             ...DEFAULT_USER_DOC,
             nickname: fallback.nickname || DEFAULT_USER_DOC.nickname,
             email: fallback.email || DEFAULT_USER_DOC.email,
+            ...(fallback.isGuest
+              ? { isGuest: true, currentCashback: GUEST_SEED_CASHBACK, totalCashback: GUEST_SEED_CASHBACK }
+              : {}),
           };
           void setDoc(ref, initial);
           setData(initial);

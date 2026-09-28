@@ -24,3 +24,8 @@ export const VERIFY_LATENCY_MS = { min: 1200, max: 1900 };
 
 /** 군인 인증 회원의 캐시백 배율. 값만 바꾸면 전체 계산에 반영돼요 */
 export const SOLDIER_CASHBACK_MULTIPLIER = 1.5;
+
+/** 체험(익명) 계정을 처음 만들 때 미리 채워주는 샘플 캐시백. 시연이 바로 이어지게 하기 위한 값 */
+export const GUEST_SEED_CASHBACK = 3000;
+/** 체험 계정 캐시백 충전 버튼(시연 도우미)이 한 번에 채워주는 금액 */
+export const GUEST_TOPUP_CASHBACK = 10000;

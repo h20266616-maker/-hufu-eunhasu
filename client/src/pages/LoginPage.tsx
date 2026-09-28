@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Field } from '../components/ui/Field';
 import { useAuth } from '../context/AuthContext';
 import { useNav } from '../context/NavContext';
+import { useToast } from '../context/ToastContext';
 import { CONSENT_NOTICE } from '../data';
 import { formatPhoneInput } from '../utils/format';
 
@@ -20,9 +21,11 @@ interface FieldErrors {
 }
 
 export function LoginPage() {
-  const { firebaseReady, signInGoogle, signInEmail, signUpEmail, enterGuestMode } = useAuth();
+  const { firebaseReady, isGuest, signInGoogle, signInEmail, signUpEmail, enterGuestMode, upgradeWithEmail, upgradeWithGoogle } =
+    useAuth();
   const { reset } = useNav();
-  const [mode, setMode] = useState<Mode>('login');
+  const showToast = useToast();
+  const [mode, setMode] = useState<Mode>(isGuest ? 'signup' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -31,21 +34,30 @@ export function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   const goHome = () => reset({ name: 'receipt' }, 'receipt');
 
   const handleGoogle = async () => {
     setError(null);
     setLoading(true);
-    const result = await signInGoogle();
+    const result = isGuest ? await upgradeWithGoogle() : await signInGoogle();
     setLoading(false);
-    if (result.ok) goHome();
-    else setError(result.message);
+    if (result.ok) {
+      if (isGuest) showToast('정식 계정으로 전환됐어요');
+      goHome();
+    } else {
+      setError(result.message);
+    }
   };
 
-  const handleGuest = () => {
-    enterGuestMode();
-    goHome();
+  const handleGuest = async () => {
+    setError(null);
+    setGuestLoading(true);
+    const result = await enterGuestMode();
+    setGuestLoading(false);
+    if (result.ok) goHome();
+    else setError(result.message);
   };
 
   const validateSignupFields = (): FieldErrors => {
@@ -70,10 +82,18 @@ export function LoginPage() {
 
     setLoading(true);
     const result =
-      mode === 'login' ? await signInEmail(email, password) : await signUpEmail(email, password, name.trim(), phone);
+      mode === 'login'
+        ? await signInEmail(email, password)
+        : isGuest
+          ? await upgradeWithEmail(email, password, name.trim(), phone)
+          : await signUpEmail(email, password, name.trim(), phone);
     setLoading(false);
-    if (result.ok) goHome();
-    else setError(result.message);
+    if (result.ok) {
+      if (mode === 'signup' && isGuest) showToast('정식 계정으로 전환됐어요');
+      goHome();
+    } else {
+      setError(result.message);
+    }
   };
 
   const switchMode = () => {
@@ -84,11 +104,21 @@ export function LoginPage() {
 
   return (
     <div className="page">
-      <ScreenHeader title="로그인" />
+      <ScreenHeader title={isGuest ? '정식 회원가입' : '로그인'} />
       <p className="sub">
-        로그인하면 인증 내역과 스탬프, 캐시가 계정에 안전하게 저장돼요.
-        <br />
-        홈 화면은 로그인 없이도 둘러볼 수 있어요.
+        {isGuest ? (
+          <>
+            체험 계정으로 쌓은 캐시백·스탬프가 그대로 이어져요.
+            <br />
+            로그인 정보만 추가로 등록하면 돼요.
+          </>
+        ) : (
+          <>
+            로그인하면 인증 내역과 스탬프, 캐시가 계정에 안전하게 저장돼요.
+            <br />
+            홈 화면은 로그인 없이도 둘러볼 수 있어요.
+          </>
+        )}
       </p>
 
       {!firebaseReady ? (
@@ -171,7 +201,7 @@ export function LoginPage() {
         />
         {error ? <p className="field__error">{error}</p> : null}
         <Button type="submit" variant="line" disabled={loading || !firebaseReady}>
-          {mode === 'login' ? '이메일로 로그인' : '이메일로 회원가입'}
+          {mode === 'login' ? '이메일로 로그인' : isGuest ? '정식 계정으로 전환하기' : '이메일로 회원가입'}
         </Button>
       </form>
 
@@ -179,10 +209,19 @@ export function LoginPage() {
         {mode === 'login' ? '처음이신가요? 이메일로 회원가입' : '이미 계정이 있으신가요? 로그인'}
       </button>
 
-      <div className="spacer" />
-      <Button variant="ghost" icon={<Compass size={16} aria-hidden="true" />} onClick={handleGuest}>
-        게스트로 둘러보기
-      </Button>
+      {isGuest ? null : (
+        <>
+          <div className="spacer" />
+          <Button
+            variant="ghost"
+            icon={<Compass size={16} aria-hidden="true" />}
+            onClick={() => void handleGuest()}
+            disabled={guestLoading}
+          >
+            {guestLoading ? '체험 계정 만드는 중…' : '게스트로 둘러보기'}
+          </Button>
+        </>
+      )}
     </div>
   );
 }

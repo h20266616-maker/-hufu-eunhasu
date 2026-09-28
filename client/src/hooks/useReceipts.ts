@@ -1,4 +1,16 @@
-import { addDoc, collection, increment, onSnapshot, orderBy, query, setDoc, doc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  getDocs,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+  doc,
+  where,
+} from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { db } from '../lib/firebase';
 import type { ReceiptCategory, ReceiptForm, ReceiptRecord, ReceiptSource } from '../types';
@@ -58,5 +70,13 @@ export function useReceipts(uid: string | null) {
     [receiptsRef, uid],
   );
 
-  return { receipts, commitReceipt };
+  // 체험(익명) 계정의 "내 데이터 초기화" 전용. firestore.rules가 익명 계정의 본인 영수증
+  // 삭제만 허용하므로, 실제 회원 계정으로는 이 호출이 규칙에서 거부된다
+  const deleteAllMyReceipts = useCallback(async () => {
+    if (!uid || !db) return;
+    const snap = await getDocs(query(collection(db, 'receipts'), where('uid', '==', uid)));
+    await Promise.all(snap.docs.map((item) => deleteDoc(item.ref)));
+  }, [uid]);
+
+  return { receipts, commitReceipt, deleteAllMyReceipts };
 }

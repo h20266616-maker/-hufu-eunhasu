@@ -12,20 +12,20 @@ import { useMyComments } from '../hooks/useMyComments';
 import { formatRelative } from '../utils/format';
 
 export function MyPostsPage() {
-  const { uid, isGuest, posts } = useApp();
+  const { uid, posts } = useApp();
   const { push } = useNav();
-  const isRealAccount = uid !== null && !isGuest;
-  const myComments = useMyComments(isRealAccount ? uid : null);
+  const loggedIn = uid !== null;
+  const myComments = useMyComments(loggedIn ? uid : null);
 
   const myPosts = useMemo(() => posts.filter((post) => post.mine).sort((a, b) => b.createdAt - a.createdAt), [posts]);
 
   const openPost = (postId: string) => push({ name: 'postDetail', postId });
 
-  if (!isRealAccount) {
+  if (!loggedIn) {
     return (
       <div className="page">
         <ScreenHeader title="내 글·댓글" />
-        <AccountRequiredNotice isGuest={isGuest} description="내 글·댓글은 실제 계정으로 로그인한 뒤에 볼 수 있어요." />
+        <AccountRequiredNotice isGuest={false} description="내 글·댓글은 로그인한 뒤에 볼 수 있어요." />
       </div>
     );
   }

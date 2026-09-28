@@ -15,7 +15,7 @@ import { formatRelative } from '../utils/format';
 const MAX_COMMENT_LENGTH = 200;
 
 export function PostDetailPage({ postId }: { postId: string }) {
-  const { uid, isGuest, posts, profile, toggleLike } = useApp();
+  const { uid, posts, profile, toggleLike } = useApp();
   const { comments, addComment } = usePostComments(postId, uid);
   const { push, back } = useNav();
   const showToast = useToast();
@@ -38,12 +38,12 @@ export function PostDetailPage({ postId }: { postId: string }) {
     );
   }
 
-  const isRealAccount = uid !== null && !isGuest;
+  const loggedIn = uid !== null;
   const ownerLocked = post.board === 'owner' && profile.role !== 'owner';
-  const readOnly = !isRealAccount || ownerLocked;
+  const readOnly = !loggedIn || ownerLocked;
 
   const handleLike = () => {
-    if (!isRealAccount) {
+    if (!loggedIn) {
       push({ name: 'login' });
       return;
     }
@@ -107,11 +107,8 @@ export function PostDetailPage({ postId }: { postId: string }) {
         )}
       </section>
 
-      {!isRealAccount ? (
-        <AccountRequiredNotice
-          isGuest={isGuest}
-          description={isGuest ? '좋아요와 댓글은 회원가입 후 남길 수 있어요.' : '로그인하면 좋아요와 댓글을 남길 수 있어요.'}
-        />
+      {!loggedIn ? (
+        <AccountRequiredNotice isGuest={false} description="로그인하면 좋아요와 댓글을 남길 수 있어요." />
       ) : ownerLocked ? (
         <div className="notice" role="note">
           <Lock size={18} aria-hidden="true" />

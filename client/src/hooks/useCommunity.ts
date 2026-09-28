@@ -9,7 +9,7 @@ import {
   updateDoc,
   doc,
 } from 'firebase/firestore';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { db } from '../lib/firebase';
 import type { Board, Post } from '../types';
 import { useLatest } from './useLatest';
@@ -24,6 +24,7 @@ interface PostDoc {
   createdAt: number;
   likedBy: string[];
   commentCount: number;
+  isGuest?: boolean;
 }
 
 export interface NewPostInput {
@@ -34,10 +35,17 @@ export interface NewPostInput {
   author: string;
 }
 
+const POST_RATE_LIMIT_COUNT = 3;
+const POST_RATE_LIMIT_WINDOW_MS = 60_000;
+const POST_RATE_LIMIT_MESSAGE = '글쓰기는 1분에 3건까지만 할 수 있어요. 잠시 후 다시 시도해 주세요.';
+
 /** posts 컬렉션을 실시간 구독한다. 로그인하지 않아도 목록은 읽을 수 있다 */
-export function useCommunity(uid: string | null) {
+export function useCommunity(uid: string | null, isGuest: boolean) {
   const [posts, setPosts] = useState<Post[]>([]);
   const postsRef = useLatest(posts);
+  // 커뮤니티 도배 방지용 클라이언트 쿨다운. 서버 규칙이 아니라 이 세션 안에서만 막는
+  // 간단한 방식이라, 진짜 남용 방지가 필요하면 Firestore 규칙/Cloud Functions로 보강해야 한다
+  const recentPostTimestamps = useRef<number[]>([]);
 
   useEffect(() => {
     if (!db) {
@@ -65,6 +73,7 @@ export function useCommunity(uid: string | null) {
               liked: uid !== null && likedBy.includes(uid),
               commentCount: data.commentCount ?? 0,
               mine: uid !== null && data.authorUid === uid,
+              isGuest: data.isGuest ?? false,
             };
           }),
         );
@@ -94,21 +103,32 @@ export function useCommunity(uid: string | null) {
   const addPost = useCallback(
     async (input: NewPostInput): Promise<string> => {
       if (!uid || !db) throw new Error('로그인이 필요해요');
+
+      const now = Date.now();
+      recentPostTimestamps.current = recentPostTimestamps.current.filter(
+        (timestamp) => now - timestamp < POST_RATE_LIMIT_WINDOW_MS,
+      );
+      if (recentPostTimestamps.current.length >= POST_RATE_LIMIT_COUNT) {
+        throw new Error(POST_RATE_LIMIT_MESSAGE);
+      }
+
       try {
         const ref = await addDoc(collection(db, 'posts'), {
           ...input,
           authorUid: uid,
-          createdAt: Date.now(),
+          createdAt: now,
           likedBy: [],
           commentCount: 0,
+          isGuest,
         });
+        recentPostTimestamps.current.push(now);
         return ref.id;
       } catch (error) {
         console.error('[useCommunity] 글 작성에 실패했어요', error);
         throw error;
       }
     },
-    [uid],
+    [isGuest, uid],
   );
 
   return { posts, toggleLike, addPost };
