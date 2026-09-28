@@ -18,6 +18,14 @@
   margin-top: -4px;
 }
 
+/* ---------- 영수증 인증 홈 ---------- */
+.home-tagline {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 /* ---------- 영수증 화면 ---------- */
 .banner {
   display: flex;

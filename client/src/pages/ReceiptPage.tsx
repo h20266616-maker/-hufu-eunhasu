@@ -116,6 +116,8 @@ export function ReceiptPage() {
 
   return (
     <div className="page">
+      <p className="home-tagline">영수증 찍으면 화천에서 쓸 수 있는 캐시백이 쌓여요</p>
+
       {loggedIn ? null : (
         <Card className="row">
           <div>

@@ -29,6 +29,7 @@ export type VerifyOutcome =
 
 const VERIFY_FAILURE_MESSAGE = '영수증을 읽지 못했어요. 밝은 곳에서 평평하게 펴서 다시 촬영해 주세요.';
 const LOGIN_REQUIRED_MESSAGE = '로그인하고 인증해 주세요.';
+const DUPLICATE_RECEIPT_MESSAGE = '이미 인증된 영수증이에요.';
 
 interface GuestState {
   profile: Profile;
@@ -62,6 +63,15 @@ function pickStampSpot(owned: StampRecord[], preferredId?: string): StampSpot | 
   const ownedIds = new Set(owned.map((stamp) => stamp.spotId));
   const preferred = STAMP_SPOTS.find((spot) => spot.id === preferredId && !ownedIds.has(spot.id));
   return preferred ?? STAMP_SPOTS.find((spot) => !ownedIds.has(spot.id)) ?? null;
+}
+
+/**
+ * mock 중복 인증 판별용 키. 가맹점명 + 금액 + 날짜(일 단위)를 합쳐서 만든다.
+ * 실서비스라면 이 정도로는 부족하고 OCR로 읽은 영수증 번호, 가맹점 사업자번호 DB 대조,
+ * 카드사·PG 결제 데이터 대사가 필요하다. README의 "영수증 중복 인증 방지" 절 참고.
+ */
+function buildReceiptDedupeKey(shop: string, amount: number, createdAt: string): string {
+  return `${shop}|${amount}|${createdAt.slice(0, 10)}`;
 }
 
 function useAppState() {
@@ -100,6 +110,7 @@ function useAppState() {
   const { freshStampId } = stampsState;
 
   const claimedRef = useLatest(claimedRewards);
+  const receiptsRef = useLatest(receipts);
   const stampCountRef = useLatest(stamps.length);
   const { awardStamp: awardStampFirestore, setFreshStampId } = stampsState;
 
@@ -120,6 +131,13 @@ function useAppState() {
       // 카테고리는 본인이 고른 값이 실제 지출과 더 맞으니 그대로 반영한다
       const resolved = input.source === 'cash' ? input : mock ? { ...mock, category: input.category } : null;
       if (!resolved) return { ok: false, message: VERIFY_FAILURE_MESSAGE };
+
+      // mock 중복 인증 방지: 같은 가게에서 같은 금액을 같은 날 두 번 인증하면 막는다
+      const dedupeKey = buildReceiptDedupeKey(resolved.shop, resolved.amount, new Date().toISOString());
+      const isDuplicate = receiptsRef.current.some(
+        (existing) => buildReceiptDedupeKey(existing.shop, existing.amount, existing.createdAt) === dedupeKey,
+      );
+      if (isDuplicate) return { ok: false, message: DUPLICATE_RECEIPT_MESSAGE };
 
       if (isGuest) {
         const before = guestStateRef.current;
@@ -186,6 +204,7 @@ function useAppState() {
       failNextRef,
       guestStateRef,
       isGuest,
+      receiptsRef,
       setFreshStampId,
       uid,
       userDoc.soldierVerified,

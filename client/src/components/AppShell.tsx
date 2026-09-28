@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNav } from '../context/NavContext';
 import { useTabBarVisibility } from '../hooks/useTabBarVisibility';
+import { Onboarding } from './Onboarding';
 import { Router } from './Router';
 import { TabBar } from './TabBar';
 
@@ -20,6 +21,7 @@ export function AppShell() {
         <Router key={entryKey} route={route} />
       </main>
       {showTabBar ? <TabBar hidden={tabBarHidden} /> : null}
+      <Onboarding />
     </>
   );
 }
